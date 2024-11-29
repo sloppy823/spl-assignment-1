@@ -3,6 +3,7 @@
 #include "Facility.h"
 #include "Settlement.h"
 #include "SelectionPolicy.h"
+#include <iostream>
 using std::vector;
 
 enum class PlanStatus {
@@ -32,22 +33,78 @@ class Plan {
     }
 
 
-    // Execute one step of the plan (e.g., construct a new facility or progress construction)
-    void Plan:: step();
+    void Plan::step() {
+
+        //construction limit
+        SettlementType type =settlement->getType();
+        int limit = 0;
+        if(type == SettlementType::VILLAGE)
+            limit = 1;
+        else {
+            if(type == SettlementType::CITY)
+                limit = 2;
+            else
+                limit=3;
+        }
+        
+        // step 1:Check PlanStatus
+        if (status == PlanStatus::AVAILABLE) {
+
+            //step 2
+            while (underConstruction.size() < limit) {
+                try {
+                    const FacilityType& selected = selectionPolicy->selectFacility(facilityOptions);
+                    // Create and add new Facility to the underConstruction list
+                    Facility* newFacility = new Facility(selected, settlement->getName());
+                    underConstruction.push_back(newFacility);
+                    } 
+                catch (std::exception& e) {
+                    // No more facilities can be selected, exit the loop
+                    break;
+                    }
+            }
+        }
+
+        // Step 3: Update facilities under construction
+        for (auto it = underConstruction.begin(); it != underConstruction.end();) {
+            (*it)->step(); 
+            //move to facilities
+            if ((*it)->getTimeLeft() == 0) {
+                facilities.push_back(*it);
+                it = underConstruction.erase(it); 
+            } else {
+                ++it;
+            }
+        }
+
+        //step 4: update status
+        if (underConstruction.size() == limit) {
+            status = PlanStatus::BUSY;
+        } else {
+            status = PlanStatus::AVAILABLE;
+        }
+    }
 
 
 
-    // Print the status of the plan
-    void printStatus();
+    void printStatus(){
+        std::cout << "PlanID: " << plan_id << std::endl;
+        std::cout << "SettlementName: " << settlement->getName() << std::endl;
+        std::string planStatusStr = (status == PlanStatus::AVAILABLE) ? "AVAILABLE" : "BUSY";
+        std::cout << "PlanStatus: " << planStatusStr << std::endl;    
+    }
 
     // Accessor for the facilities managed by this plan (operational and under construction)
-    const vector<Facility*> &getFacilities() const;
+    const vector<Facility*> &getFacilities() const{
+        return this->facilities;
+    }
 
     // Add a facility to the plan (either operational or under construction)
-    void addFacility(Facility* facility);
+    void addFacility(Facility* facility){
+    }
 
     // Convert the plan to a string (for display or logging purposes)
-    const string toString() const;
+    const string toString() const{}
 
 private:
     int plan_id;  // Unique ID for this plan
