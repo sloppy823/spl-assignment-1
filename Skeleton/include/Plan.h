@@ -6,14 +6,14 @@
 using std::vector;
 
 enum class PlanStatus {
-    AVALIABLE,
+    AVAILABLE,
     BUSY,
 };
 
 class Plan {
     public:
         Plan(const int planId, const Settlement &settlement, SelectionPolicy *selectionPolicy, const vector<FacilityType> &facilityOptions);
-        const int getlifeQualityScore() const;
+        const int getLifeQualityScore() const;
         const int getEconomyScore() const;
         const int getEnvironmentScore() const;
         void setSelectionPolicy(SelectionPolicy *selectionPolicy);

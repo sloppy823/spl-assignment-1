@@ -31,22 +31,21 @@ const FacilityType& BalancedSelection::selectFacility(const vector<FacilityType>
         throw std::logic_error("No facilities available for selection.");
     }
 
-    // Select the facility minimizing the difference between max and min scores after construction
-    auto comparator = [this](const FacilityType& a, const FacilityType& b) {
-        int aScores[] = {LifeQualityScore + a.getLifeQualityScore(),
-                         EconomyScore + a.getEconomyScore(),
-                         EnvironmentScore + a.getEnvironmentScore()};
-        int bScores[] = {LifeQualityScore + b.getLifeQualityScore(),
-                         EconomyScore + b.getEconomyScore(),
-                         EnvironmentScore + b.getEnvironmentScore()};
-
-        int aBalance = *std::max_element(aScores, aScores + 3) - *std::min_element(aScores, aScores + 3);
-        int bBalance = *std::max_element(bScores, bScores + 3) - *std::min_element(bScores, bScores + 3);
-
-        return aBalance < bBalance; // Select the facility with the smaller balance difference
+    // Lambda to calculate balance difference
+    auto balanceDifference = [this](const FacilityType& facility) {
+        int updatedScores[] = {
+            LifeQualityScore + facility.getLifeQualityScore(),
+            EconomyScore + facility.getEconomyScore(),
+            EnvironmentScore + facility.getEnvironmentScore()
+        };
+        return *std::max_element(updatedScores, updatedScores + 3) - *std::min_element(updatedScores, updatedScores + 3);
     };
 
-    return *std::min_element(facilitiesOptions.begin(), facilitiesOptions.end(), comparator);
+    // Select facility with the smallest balance difference
+    return *std::min_element(facilitiesOptions.begin(), facilitiesOptions.end(),
+                             [&](const FacilityType& a, const FacilityType& b) {
+                                 return balanceDifference(a) < balanceDifference(b);
+                             });
 }
 
 const string BalancedSelection::toString() const {
@@ -70,7 +69,7 @@ const FacilityType& EconomySelection::selectFacility(const vector<FacilityType>&
         throw std::logic_error("No facilities available for selection.");
     }
 
-    // Filter facilities by economy category and use round-robin selection
+    // Filter economy facilities
     vector<const FacilityType*> economyFacilities;
     for (const auto& facility : facilitiesOptions) {
         if (facility.getCategory() == FacilityCategory::ECONOMY) {
@@ -79,10 +78,10 @@ const FacilityType& EconomySelection::selectFacility(const vector<FacilityType>&
     }
 
     if (economyFacilities.empty()) {
-        throw std::logic_error("No facilities in the economy category available.");
+        throw std::logic_error("No facilities in the ECONOMY category are available.");
     }
 
-    lastSelectedIndex = (lastSelectedIndex + 1) % economyFacilities.size();
+    lastSelectedIndex = (lastSelectedIndex + 1) % economyFacilities.size(); // Round-robin selection
     return *economyFacilities[lastSelectedIndex];
 }
 
@@ -102,7 +101,7 @@ const FacilityType& SustainabilitySelection::selectFacility(const vector<Facilit
         throw std::logic_error("No facilities available for selection.");
     }
 
-    // Filter facilities by environment category and use round-robin selection
+    // Filter environment facilities
     vector<const FacilityType*> environmentFacilities;
     for (const auto& facility : facilitiesOptions) {
         if (facility.getCategory() == FacilityCategory::ENVIRONMENT) {
@@ -111,10 +110,10 @@ const FacilityType& SustainabilitySelection::selectFacility(const vector<Facilit
     }
 
     if (environmentFacilities.empty()) {
-        throw std::logic_error("No facilities in the environment category available.");
+        throw std::logic_error("No facilities in the ENVIRONMENT category are available.");
     }
 
-    lastSelectedIndex = (lastSelectedIndex + 1) % environmentFacilities.size();
+    lastSelectedIndex = (lastSelectedIndex + 1) % environmentFacilities.size(); // Round-robin selection
     return *environmentFacilities[lastSelectedIndex];
 }
 
