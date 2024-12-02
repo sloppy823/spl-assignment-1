@@ -1,6 +1,6 @@
-#include "Skeleton/Simulation.h"
+#include "Simulation.h"
 #include "SelectionPolicy.h"
-#include "BaseAction.h"
+#include "Action.h"
 #include <stdexcept>
 #include <iostream>
 #include <algorithm> // for std::find_if
@@ -42,7 +42,7 @@ void Simulation::addPlan(const Settlement *settlement, SelectionPolicy *selectio
     }
 
     // Ownership of selectionPolicy is transferred to the Plan object
-    plans.emplace_back(planCounter++, settlement, selectionPolicy);
+    plans.emplace_back(plans, *settlement, &selectionPolicy, facilitiesOptions);
 }
 
 // Adds a new action to the log
@@ -85,7 +85,7 @@ bool Simulation::addFacility(FacilityType facility) {
 }
 
 // Checks if a settlement exists by name
-bool Simulation::isSettlementExists(const string &settlementName) const {
+bool Simulation::isSettlementExists(const string &settlementName) {
     return find_if(settlements.begin(), settlements.end(),
                    [&settlementName](const Settlement *settlement) {
                        return settlement->getName() == settlementName;
@@ -148,17 +148,4 @@ void Simulation::open() {
         throw runtime_error("Cannot open simulation. No plans available.");
     }
     isRunning = true;
-}
-
-// Destructor
-Simulation::~Simulation() {
-    // Clean up dynamically allocated memory for settlements
-    for (auto settlement : settlements) {
-        delete settlement;
-    }
-
-    // Clean up dynamically allocated memory for actions
-    for (auto action : actionsLog) {
-        delete action;
-    }
 }

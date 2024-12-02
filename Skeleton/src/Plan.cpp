@@ -8,6 +8,7 @@ Plan::Plan(const int planId, const Settlement &settlement, SelectionPolicy *sele
     : plan_id(planId), settlement(&settlement), selectionPolicy(selectionPolicy), status(PlanStatus::AVAILABLE),
       facilityOptions(facilityOptions), life_quality_score(0), economy_score(0), environment_score(0),
       facilities(), underConstruction() {}
+
 const int Plan::getLifeQualityScore() const {
     return life_quality_score;
 }
@@ -15,7 +16,9 @@ const int Plan::getLifeQualityScore() const {
 const int Plan::getEconomyScore() const {
     return economy_score;
 }
-
+const int Plan::getPlanID() const{
+    return plan_id;
+}
 const int Plan::getEnvironmentScore() const {
     return environment_score;
 }
@@ -27,9 +30,16 @@ void Plan::setSelectionPolicy(SelectionPolicy *newSelectionPolicy) {
 }
 
 void Plan::step() {
-    // Step 1: Determine construction limit
-    int limit = settlement->getConstructionLimit();
-
+    SettlementType type =settlement->getType();
+    int limit = 0;
+    if(type == SettlementType::VILLAGE)
+        limit = 1;
+    else {
+        if(type == SettlementType::CITY)
+            limit = 2;
+        else
+            limit = 3;
+        }
     // Step 2: Start new facility construction
     if (status == PlanStatus::AVAILABLE) {
         while (underConstruction.size() < static_cast<size_t>(limit)) {
@@ -85,11 +95,4 @@ void Plan::printStatus() {
     std::cout << "Environment Score: " << environment_score << std::endl;
 }
 
-Plan::~Plan() {
-    for (auto *facility : underConstruction) {
-        delete facility;
-    }
-    for (auto *facility : facilities) {
-        delete facility;
-    }
-}
+
