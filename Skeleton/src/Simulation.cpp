@@ -42,7 +42,7 @@ void Simulation::addPlan(const Settlement *settlement, SelectionPolicy *selectio
     }
 
     // Ownership of selectionPolicy is transferred to the Plan object
-    plans.emplace_back(plans, *settlement, &selectionPolicy, facilitiesOptions);
+    plans.emplace_back(planCounter++, *settlement, selectionPolicy, facilitiesOptions);
 }
 
 // Adds a new action to the log
