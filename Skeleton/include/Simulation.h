@@ -32,4 +32,6 @@ class Simulation {
         vector<Plan> plans;
         vector<Settlement*> settlements;
         vector<FacilityType> facilitiesOptions;
+        FacilityCategory parseFacilityCategory(const string &category);
+        SelectionPolicy *createPolicy(const string &policyType);
 };

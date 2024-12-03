@@ -9,6 +9,7 @@ Plan::Plan(const int planId, const Settlement &settlement, SelectionPolicy *sele
       facilityOptions(facilityOptions), life_quality_score(0), economy_score(0), environment_score(0),
       facilities(), underConstruction() {}
 
+
 const int Plan::getLifeQualityScore() const {
     return life_quality_score;
 }
@@ -22,7 +23,6 @@ const int Plan::getPlanID() const{
 const int Plan::getEnvironmentScore() const {
     return environment_score;
 }
-
 void Plan::setSelectionPolicy(SelectionPolicy *newSelectionPolicy) {
     if (selectionPolicy != newSelectionPolicy) {
         selectionPolicy = newSelectionPolicy;
@@ -94,5 +94,10 @@ void Plan::printStatus() {
     std::cout << "Economy Score: " << economy_score << std::endl;
     std::cout << "Environment Score: " << environment_score << std::endl;
 }
+
+
+
+
+
 
 

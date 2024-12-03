@@ -3,35 +3,112 @@
 #include "Action.h"
 #include <stdexcept>
 #include <iostream>
-#include <algorithm> // for std::find_if
+#include <sstream>
+#include <algorithm>
 
 using std::logic_error;
 using std::runtime_error;
 using std::find_if;
+using std::cin;
+using std::istringstream;
+using std::getline;
 
 // Constructor
-Simulation::Simulation(const string &configFilePath) : isRunning(false), planCounter(0) {
-    // TODO: Parse the configuration file and populate settlements, facilities, or other resources.
-    // Placeholder: initializing with empty vectors.
-}
+Simulation::Simulation(const string &configFilePath) : isRunning(false),planCounter(0),actionsLog(),plans(),settlements(),facilitiesOptions() {}
 
 // Starts the simulation
 void Simulation::start() {
-    if (isRunning) {
-        throw runtime_error("Simulation is already running.");
-    }
-
-    if (plans.empty()) {
-        throw runtime_error("Cannot start simulation. No reconstruction plans available.");
-    }
-
-    isRunning = true;
+    open();
     while (isRunning) {
-        step();
+        string line;
+        getline(cin, line);
+        istringstream stream(line);
+        string command;
+        stream >> command;
+        if (line.empty() || line[0] == '#') {
+            continue;
+        }
+
+        try {
+            if (command == "step") {
+                step();
+            } else if (command == "plan") {
+                string settlementName, policyType;
+                stream >> settlementName >> policyType;
+                Settlement *settlement = getSettlement(settlementName);
+                if (!settlement) {
+                    throw runtime_error("Settlement not found: " + settlementName);
+                }
+
+                SelectionPolicy *policy = createPolicy(policyType);
+                if (!policy) {
+                    throw runtime_error("Unknown selection policy: " + policyType);
+                }
+
+                addPlan(settlement, policy);
+            } else if (command == "Settlement") {
+                string settlementName;
+                int settlementType;
+                stream >> settlementName >> settlementType;
+                auto settlement = new Settlement(settlementName, static_cast<SettlementType>(settlementType));
+                if (!addSettlement(settlement)) {
+                    delete settlement; // Prevent memory leak
+                }
+            } else if (command == "Facility") {
+                string facilityName, category;
+                int price, lifeQImpact, ecoImpact, envImpact;
+                stream >> facilityName >> category >> price >> lifeQImpact >> ecoImpact >> envImpact;
+
+                FacilityCategory facilityCategory = parseFacilityCategory(category);
+                if (facilityCategory == FacilityCategory::LIFE_QUALITY && category != "life_quality") {
+                    throw runtime_error("Invalid facility category: " + category);
+                }
+
+                FacilityType facility(facilityName, facilityCategory, price, lifeQImpact, ecoImpact, envImpact);
+                if (!addFacility(facility)) {
+                    std::cerr << "Facility \"" << facilityName << "\" already exists.\n";
+                }
+            } else if ((command == "planStatus")) {
+                int planId;
+                stream >> planId;
+                auto it = find_if(plans.begin(), plans.end(),[planId](const Plan &plan) { return plan.getPlanID() == planId; });
+                (*it).printStatus();
+            } else {
+                throw runtime_error("Unknown command: " + command);
+            }
+        } catch (const std::exception &e) {
+            std::cerr << "Error processing command: " << line << "\n"
+                      << e.what() << "\n";
+        }
     }
 }
 
-// Adds a new plan to the simulation
+// Helper function to create a selection policy
+SelectionPolicy *Simulation::createPolicy(const string &policyType) {
+    if (policyType == "eco") {
+        return new EconomySelection();
+    } else if (policyType == "bal") {
+        return new BalancedSelection(0, 0, 0); // Default scores
+    } else if (policyType == "sus") {
+        return new SustainabilitySelection();
+    } else {
+        return nullptr;
+    }
+}
+
+// Helper function to parse facility category
+FacilityCategory Simulation::parseFacilityCategory(const string &category) {
+    if (category == "life_quality") {
+        return FacilityCategory::LIFE_QUALITY;
+    } else if (category == "economy") {
+        return FacilityCategory::ECONOMY;
+    } else if (category == "environment") {
+        return FacilityCategory::ENVIRONMENT;
+    }
+    throw runtime_error("Unknown facility category: " + category);
+}
+
+// Adds a new plan
 void Simulation::addPlan(const Settlement *settlement, SelectionPolicy *selectionPolicy) {
     if (!settlement) {
         throw logic_error("Invalid settlement provided for adding a plan.");
@@ -41,18 +118,7 @@ void Simulation::addPlan(const Settlement *settlement, SelectionPolicy *selectio
         throw logic_error("Invalid selection policy provided for adding a plan.");
     }
 
-    // Ownership of selectionPolicy is transferred to the Plan object
     plans.emplace_back(planCounter++, *settlement, selectionPolicy, facilitiesOptions);
-}
-
-// Adds a new action to the log
-void Simulation::addAction(BaseAction *action) {
-    if (!action) {
-        throw logic_error("Invalid action provided.");
-    }
-
-    // Ownership of the action is transferred to the actions log
-    actionsLog.push_back(action);
 }
 
 // Adds a new settlement
@@ -66,16 +132,14 @@ bool Simulation::addSettlement(Settlement *settlement) {
         return false;
     }
 
-    // Ownership of settlement is transferred to the Simulation object
     settlements.push_back(settlement);
     return true;
 }
 
-// Adds a new facility type to the options
+// Adds a new facility type
 bool Simulation::addFacility(FacilityType facility) {
     for (const auto &existingFacility : facilitiesOptions) {
         if (existingFacility.getName() == facility.getName()) {
-            std::cerr << "Facility \"" << facility.getName() << "\" already exists.\n";
             return false;
         }
     }
@@ -84,7 +148,7 @@ bool Simulation::addFacility(FacilityType facility) {
     return true;
 }
 
-// Checks if a settlement exists by name
+// Checks if a settlement exists
 bool Simulation::isSettlementExists(const string &settlementName) {
     return find_if(settlements.begin(), settlements.end(),
                    [&settlementName](const Settlement *settlement) {
@@ -92,7 +156,7 @@ bool Simulation::isSettlementExists(const string &settlementName) {
                    }) != settlements.end();
 }
 
-// Retrieves a settlement by name
+// Retrieves a settlement
 Settlement *Simulation::getSettlement(const string &settlementName) {
     auto it = find_if(settlements.begin(), settlements.end(),
                       [&settlementName](const Settlement *settlement) {
@@ -101,34 +165,23 @@ Settlement *Simulation::getSettlement(const string &settlementName) {
     return (it != settlements.end()) ? *it : nullptr;
 }
 
-// Retrieves a plan by ID
-Plan &Simulation::getPlan(const int planID) {
-    auto it = find_if(plans.begin(), plans.end(),
-                      [planID](const Plan &plan) {
-                          return plan.getPlanID() == planID;
-                      });
-    if (it == plans.end()) {
-        throw runtime_error("Plan with ID " + std::to_string(planID) + " not found.");
-    }
-    return *it;
-}
-
-// Executes one step of the simulation
+// Executes one step
 void Simulation::step() {
     if (!isRunning) {
         throw runtime_error("Cannot execute step. Simulation is not running.");
     }
 
     for (auto &plan : plans) {
-        try {
-            plan.step();
-        } catch (const std::exception &e) {
-            std::cerr << "Error during plan execution: " << e.what() << "\n";
-            // Log error or take appropriate action
-        }
+        plan.step();
     }
+}
 
-    // Additional logic for managing actions, logs, or events can be added here.
+// Starts the simulation
+void Simulation::open() {
+    if (isRunning) {
+        throw runtime_error("Simulation is already running.");
+    }
+    isRunning = true;
 }
 
 // Stops the simulation
@@ -137,15 +190,4 @@ void Simulation::close() {
         throw runtime_error("Simulation is not running.");
     }
     isRunning = false;
-}
-
-// Reopens the simulation
-void Simulation::open() {
-    if (isRunning) {
-        throw runtime_error("Simulation is already running.");
-    }
-    if (plans.empty()) {
-        throw runtime_error("Cannot open simulation. No plans available.");
-    }
-    isRunning = true;
 }
