@@ -16,6 +16,7 @@ class Plan {
         const int getLifeQualityScore() const;
         const int getEconomyScore() const;
         const int getEnvironmentScore() const;
+        PlanStatus getStatus() const;
         void setSelectionPolicy(SelectionPolicy *selectionPolicy);
         void step();
         void printStatus();
@@ -23,6 +24,7 @@ class Plan {
         void addFacility(Facility* facility);
         const string toString() const;
         const int getPlanID() const;
+
         
     private:
         int plan_id;

@@ -23,7 +23,9 @@ class Simulation {
         Plan &getPlan(const int planID);
         void step();
         void close();
+        std::vector<Plan> &getPlans();
         void open();
+        SelectionPolicy *createPolicy(const string &policyType);
 
     private:
         bool isRunning;
@@ -33,5 +35,5 @@ class Simulation {
         vector<Settlement*> settlements;
         vector<FacilityType> facilitiesOptions;
         FacilityCategory parseFacilityCategory(const string &category);
-        SelectionPolicy *createPolicy(const string &policyType);
+        
 };

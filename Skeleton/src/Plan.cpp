@@ -1,103 +1,127 @@
-#include "Plan.h"
-#include <stdexcept>
-#include <algorithm>
-#include <iostream> 
-#include <string>
+#pragma once
+#include <vector>
+#include "Facility.h"
+#include "Settlement.h"
+#include "SelectionPolicy.h"
+#include <iostream>
+using std::vector;
 
-Plan::Plan(const int planId, const Settlement &settlement, SelectionPolicy *selectionPolicy, const vector<FacilityType> &facilityOptions)
+enum class PlanStatus {
+    AVAILABLE,  
+    BUSY,      
+};
+
+class Plan {
+    Plan::Plan(const int planId, const Settlement &settlement, SelectionPolicy *selectionPolicy, const vector<FacilityType> &facilityOptions)
     : plan_id(planId), settlement(&settlement), selectionPolicy(selectionPolicy), status(PlanStatus::AVAILABLE),
-      facilityOptions(facilityOptions), life_quality_score(0), economy_score(0), environment_score(0),
-      facilities(), underConstruction() {}
+      facilityOptions(facilityOptions), life_quality_score(0), economy_score(0), environment_score(0) {}
 
-
-const int Plan::getLifeQualityScore() const {
-    return life_quality_score;
-}
-
-const int Plan::getEconomyScore() const {
-    return economy_score;
-}
-const int Plan::getPlanID() const{
-    return plan_id;
-}
-const int Plan::getEnvironmentScore() const {
-    return environment_score;
-}
-void Plan::setSelectionPolicy(SelectionPolicy *newSelectionPolicy) {
-    if (selectionPolicy != newSelectionPolicy) {
-        selectionPolicy = newSelectionPolicy;
+    const int Plan::getLifeQualityScore() const {
+        return life_quality_score;
     }
-}
 
-void Plan::step() {
-    SettlementType type =settlement->getType();
-    int limit = 0;
-    if(type == SettlementType::VILLAGE)
-        limit = 1;
-    else {
-        if(type == SettlementType::CITY)
-            limit = 2;
-        else
-            limit = 3;
+    const int Plan::getEconomyScore() const {
+        return economy_score;
+    }
+
+    const int Plan::getEnvironmentScore() const {
+        return environment_score;
+    }
+
+    void Plan::setSelectionPolicy(SelectionPolicy *selectionPolicy) {
+        this->selectionPolicy = selectionPolicy;
+    }
+
+
+    void Plan::step() {
+
+        //construction limit
+        SettlementType type =settlement->getType();
+        int limit = 0;
+        if(type == SettlementType::VILLAGE)
+            limit = 1;
+        else {
+            if(type == SettlementType::CITY)
+                limit = 2;
+            else
+                limit=3;
         }
-    // Step 2: Start new facility construction
-    if (status == PlanStatus::AVAILABLE) {
-        while (underConstruction.size() < static_cast<size_t>(limit)) {
-            try {
-                const FacilityType &selected = selectionPolicy->selectFacility(facilityOptions);
-                Facility *newFacility = new Facility(selected, settlement->getName());
-                underConstruction.push_back(newFacility);
-            } catch (std::exception &e) {
-                // No more facilities can be selected
-                break;
+        
+        // step 1:Check PlanStatus
+        if (status == PlanStatus::AVAILABLE) {
+
+            //step 2
+            while (underConstruction.size() < limit) {
+                try {
+                    const FacilityType& selected = selectionPolicy->selectFacility(facilityOptions);
+                    // Create and add new Facility to the underConstruction list
+                    Facility* newFacility = new Facility(selected, settlement->getName());
+                    underConstruction.push_back(newFacility);
+                    } 
+                catch (std::exception& e) {
+                    // No more facilities can be selected, exit the loop
+                    break;
+                    }
             }
         }
-    }
 
-    // Step 3: Update facilities under construction
-    for (auto it = underConstruction.begin(); it != underConstruction.end();) {
-        (*it)->step();
-        if ((*it)->getTimeLeft() == 0) {
-            facilities.push_back(*it);
+        // Step 3: Update facilities under construction
+        for (auto it = underConstruction.begin(); it != underConstruction.end();) {
+            (*it)->step(); 
+            //move to facilities
+            if ((*it)->getTimeLeft() == 0) {
+                facilities.push_back(*it);
+                it = underConstruction.erase(it); 
+            } else {
+                ++it;
+            }
+        }
 
-            // Update plan scores
-            life_quality_score += (*it)->getLifeQualityScore();
-            economy_score += (*it)->getEnvironmentScore();
-            environment_score += (*it)->getEconomyScore();
-
-            it = underConstruction.erase(it);
+        //step 4: update status
+        if (underConstruction.size() == limit) {
+            status = PlanStatus::BUSY;
         } else {
-            ++it;
+            status = PlanStatus::AVAILABLE;
         }
     }
 
-    // Step 4: Update plan status
-    status = (underConstruction.size() == limit) ? PlanStatus::BUSY : PlanStatus::AVAILABLE;
-}
 
-void Plan::addFacility(Facility *facility) {
-    if (facility->getStatus() == FacilityStatus::UNDER_CONSTRUCTIONS) {
-        underConstruction.push_back(facility);
-    } else if (facility->getStatus() == FacilityStatus::OPERATIONAL) {
-        facilities.push_back(facility);
+
+    void printStatus(){
+        std::cout << "PlanID: " << plan_id << std::endl;
+        std::cout << "SettlementName: " << settlement->getName() << std::endl;
+        std::string planStatusStr = (status == PlanStatus::AVAILABLE) ? "AVAILABLE" : "BUSY";
+        std::cout << "PlanStatus: " << planStatusStr << std::endl;    
     }
-}
 
-const string Plan::toString() const {
-    return "PlanID: " + std::to_string(plan_id) + ", Settlement: " + settlement->getName() + 
-           ", Status: " + ((status == PlanStatus::AVAILABLE) ? "AVAILABLE" : "BUSY");
-}
+    // Accessor for the facilities managed by this plan (operational and under construction)
+    const vector<Facility*> &getFacilities() const{
+        return this->facilities;
+    }
 
-void Plan::printStatus() {
-    std::cout << toString() << std::endl;
-    std::cout << "Life Quality Score: " << life_quality_score << std::endl;
-    std::cout << "Economy Score: " << economy_score << std::endl;
-    std::cout << "Environment Score: " << environment_score << std::endl;
-}
+    // Add a facility to the plan (either operational or under construction)
+    void addFacility(Facility* facility){
+        facilities.push_back(facility);
+        if (facility->getStatus() == FacilityStatus::UNDER_CONSTRUCTIONS){
+            underConstruction.push_back(facility);
+        }
+    }
+    PlanStatus getStatus() const{
+        return status;
+    }
+    
 
+    // Convert the plan to a string (for display or logging purposes)
+    const string toString() const{}
+    
 
-
-
-
-
-
+private:
+    int plan_id;  // Unique ID for this plan
+    const Settlement *settlement;  // Settlement associated with this plan
+    SelectionPolicy *selectionPolicy;  // Selection strategy for the facilities
+    PlanStatus status;  // Current status of the plan (AVAILABLE or BUSY)
+    vector<Facility*> facilities;  // List of all facilities (both operational and under construction)
+    vector<Facility*> underConstruction;  // List of facilities under construction
+    const vector<FacilityType> &facilityOptions;  // Available facility options
+    int life_quality_score, economy_score, environment_score;  // Plan's score attributes
+};

@@ -85,11 +85,14 @@ void Simulation::start() {
 
 // Helper function to create a selection policy
 SelectionPolicy *Simulation::createPolicy(const string &policyType) {
+    if (policyType == "nve") {
+        return new NaiveSelection();
+    } else
     if (policyType == "eco") {
         return new EconomySelection();
     } else if (policyType == "bal") {
         return new BalancedSelection(0, 0, 0); // Default scores
-    } else if (policyType == "sus") {
+    } else if (policyType == "env") {
         return new SustainabilitySelection();
     } else {
         return nullptr;
@@ -190,4 +193,7 @@ void Simulation::close() {
         throw runtime_error("Simulation is not running.");
     }
     isRunning = false;
+}
+std::vector<Plan>& Simulation::getPlans() {
+    return plans;
 }
