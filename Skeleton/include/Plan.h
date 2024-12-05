@@ -24,6 +24,9 @@ class Plan {
         void addFacility(Facility* facility);
         const string toString() const;
         const int getPlanID() const;
+        ~Plan();                               // Destructor
+        Plan(const Plan &other);               // Copy Constructor
+        Plan &operator=(const Plan &other);    // Copy Assignment Operator
 
         
     private:
