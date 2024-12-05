@@ -36,30 +36,15 @@ const string Plan::getSelectionPolicyName() {
 
 
 void Plan::step() {
-    SettlementType type =settlement->getType();
-    int limit = 0;
-    if(type == SettlementType::VILLAGE)
-        limit = 1;
-    else {
-        if(type == SettlementType::CITY)
-            limit = 2;
-        else
-            limit = 3;
-        }
+    int limit = settlement.getsize();
     // Step 2: Start new facility construction
     if (status == PlanStatus::AVAILABLE) {
-        while (underConstruction.size() < static_cast<size_t>(limit)) {
-            try {
-                const FacilityType &selected = selectionPolicy->selectFacility(facilityOptions);
-                Facility *newFacility = new Facility(selected, settlement->getName());
-                underConstruction.push_back(newFacility);
-            } catch (std::exception &e) {
-                // No more facilities can be selected
-                break;
-            }
+        while (underConstruction.size() < (limit)) {
+            const FacilityType &selected = selectionPolicy->selectFacility(facilityOptions);
+            Facility *newFacility = new Facility(selected, settlement->getName());
+            underConstruction.push_back(newFacility);
         }
     }
-
     // Step 3: Update facilities under construction
     for (auto it = underConstruction.begin(); it != underConstruction.end();) {
         (*it)->step();
@@ -73,13 +58,12 @@ void Plan::step() {
 
             it = underConstruction.erase(it);
         } else {
-            ++it;
+            it.step();
         }
     }
 
     // Step 4: Update plan status
     status = (underConstruction.size() == limit) ? PlanStatus::BUSY : PlanStatus::AVAILABLE;
-    status = (underConstruction.size() == static_cast<size_t>(limit)) ? PlanStatus::BUSY : PlanStatus::AVAILABLE;
 }
 
 void Plan::addFacility(Facility *facility) {
@@ -129,44 +113,7 @@ Plan::Plan(const Plan &other)
         underConstruction.push_back(new Facility(*facility));
     }
 }
+Plan::Plan(const Plan &&other) : 
+{
 
-// Copy Assignment Operator
-Plan& Plan::operator=(const Plan& other) {
-    if (this == &other) {
-        return *this; // Handle self-assignment
-    }
-
-    // Assign other members
-    plan_id = other.plan_id;
-    status = other.status;
-    life_quality_score = other.life_quality_score;
-    economy_score = other.economy_score;
-    environment_score = other.environment_score;
-
-    // Deep copy settlement
-    delete settlement;
-    settlement = new Settlement(*other.settlement);
-
-    // Deep copy selectionPolicy
-    delete selectionPolicy;
-    selectionPolicy = other.selectionPolicy ? other.selectionPolicy->clone() : nullptr;
-
-    // Deep copy facilities and underConstruction
-    for (auto* facility : facilities) {
-        delete facility;
-    }
-    facilities.clear();
-    for (auto* facility : underConstruction) {
-        delete facility;
-    }
-    underConstruction.clear();
-    for (auto* facility : other.facilities) {
-        facilities.push_back(new Facility(*facility));
-    }
-    for (auto* facility : other.underConstruction) {
-        underConstruction.push_back(new Facility(*facility));
-    }
-
-    // Do not copy facilityOptions because it is const
-    return *this;
 }
