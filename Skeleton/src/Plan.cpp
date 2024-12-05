@@ -27,6 +27,14 @@ void Plan::setSelectionPolicy(SelectionPolicy *newSelectionPolicy) {
     }
 }
 
+const string Plan::getSelectionPolicyName() {
+    if (selectionPolicy) {
+        return selectionPolicy->getType();
+    }
+    return "No Selection Policy";
+}
+
+
 void Plan::step() {
     SettlementType type =settlement->getType();
     int limit = 0;
@@ -123,41 +131,42 @@ Plan::Plan(const Plan &other)
 }
 
 // Copy Assignment Operator
-Plan &Plan::operator=(const Plan &other) {
+Plan& Plan::operator=(const Plan& other) {
     if (this == &other) {
         return *this; // Handle self-assignment
     }
 
-    // Cleanup existing resources
-    delete selectionPolicy;
-    for (auto facility : facilities) {
-        delete facility;
-    }
-    for (auto facility : underConstruction) {
-        delete facility;
-    }
-
-    // Copy data
+    // Assign other members
     plan_id = other.plan_id;
-    settlement = other.settlement;
-    selectionPolicy = other.selectionPolicy ? other.selectionPolicy->clone() : nullptr;
-    facilityOptions = other.facilityOptions;
     status = other.status;
     life_quality_score = other.life_quality_score;
     economy_score = other.economy_score;
     environment_score = other.environment_score;
 
-    // Deep copy facilities
+    // Deep copy settlement
+    delete settlement;
+    settlement = new Settlement(*other.settlement);
+
+    // Deep copy selectionPolicy
+    delete selectionPolicy;
+    selectionPolicy = other.selectionPolicy ? other.selectionPolicy->clone() : nullptr;
+
+    // Deep copy facilities and underConstruction
+    for (auto* facility : facilities) {
+        delete facility;
+    }
     facilities.clear();
-    for (auto facility : other.facilities) {
+    for (auto* facility : underConstruction) {
+        delete facility;
+    }
+    underConstruction.clear();
+    for (auto* facility : other.facilities) {
         facilities.push_back(new Facility(*facility));
     }
-
-    // Deep copy underConstruction
-    underConstruction.clear();
-    for (auto facility : other.underConstruction) {
+    for (auto* facility : other.underConstruction) {
         underConstruction.push_back(new Facility(*facility));
     }
 
+    // Do not copy facilityOptions because it is const
     return *this;
 }

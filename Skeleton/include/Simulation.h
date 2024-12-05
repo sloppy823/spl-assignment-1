@@ -29,7 +29,7 @@ class Simulation {
         SelectionPolicy *createPolicy(const string &policyType);
         void changePlanPolicy(int planID, const string &newPolicy);
         void getPlanStatus(int planID);
-        void backup();
+        void backup1();
         void restore();
         void printActionsLog() const;
         ~Simulation();                         // Destructor

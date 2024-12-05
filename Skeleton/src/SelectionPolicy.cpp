@@ -22,6 +22,10 @@ NaiveSelection* NaiveSelection::clone() const {
     return new NaiveSelection(*this); // Copy the object
 }
 
+const string NaiveSelection::getType() const {
+    return "nve";
+}
+
 // BalancedSelection Implementation
 BalancedSelection::BalancedSelection(int lifeQualityScore, int economyScore, int environmentScore)
     : LifeQualityScore(lifeQualityScore), EconomyScore(economyScore), EnvironmentScore(environmentScore) {}
@@ -61,6 +65,10 @@ BalancedSelection* BalancedSelection::clone() const {
     return new BalancedSelection(*this); // Copy the object
 }
 
+const string BalancedSelection::getType() const {
+    return "bal";
+}
+
 // EconomySelection Implementation
 EconomySelection::EconomySelection() : lastSelectedIndex(-1) {}
 
@@ -91,6 +99,10 @@ const string EconomySelection::toString() const {
 
 EconomySelection* EconomySelection::clone() const {
     return new EconomySelection(*this); // Copy the object
+}
+
+const string EconomySelection::getType() const {
+    return "eco";
 }
 
 // SustainabilitySelection Implementation
@@ -124,3 +136,8 @@ const string SustainabilitySelection::toString() const {
 SustainabilitySelection* SustainabilitySelection::clone() const {
     return new SustainabilitySelection(*this); // Copy the object
 }
+
+const string SustainabilitySelection::getType() const {
+    return "env";
+}
+

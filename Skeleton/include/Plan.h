@@ -15,6 +15,8 @@ class Plan {
         Plan(const int planId, const Settlement &settlement, SelectionPolicy *selectionPolicy, const vector<FacilityType> &facilityOptions);
         const int getLifeQualityScore() const;
         const int getEconomyScore() const;
+        const string getSelectionPolicyName();
+
         const int getEnvironmentScore() const;
         PlanStatus getStatus() const;
         void setSelectionPolicy(SelectionPolicy *selectionPolicy);

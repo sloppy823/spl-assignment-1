@@ -9,6 +9,7 @@
 using std::logic_error;
 using std::runtime_error;
 using std::find_if;
+class Simulation;
 extern Simulation* backup;
 // Constructor
 Simulation::Simulation(const string &configFilePath) : isRunning(false), planCounter(0), actionsLog(), plans(), settlements(), facilitiesOptions() {
@@ -21,7 +22,7 @@ Simulation::Simulation(const string &configFilePath) : isRunning(false), planCou
     while (getline(configFile, line)) {
         std::istringstream stream(line);
         string command;
-        std::io_errc::stream >> command;
+        stream >> command;
 
         if (line.empty() || line[0] == '#') {
             continue; // Skip comments and empty lines
@@ -294,7 +295,7 @@ void Simulation::getPlanStatus(int planID) {
     it->printStatus();
 }
 
-void Simulation::backup() {
+void Simulation::backup1() {
     if (backup != nullptr) {
         delete backup;
     }
@@ -305,7 +306,7 @@ void Simulation::restore() {
     if (backup == nullptr) {
         throw runtime_error("No backup available");
     }
-    this = *backup; // Overwrite the current simulation with the backup
+    this = &backup; // Overwrite the current simulation with the backup
 }
 
 void Simulation::printActionsLog() const {
