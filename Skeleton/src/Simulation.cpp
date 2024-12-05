@@ -372,3 +372,59 @@ Simulation &Simulation::operator=(const Simulation &other) {
 
     return *this;
 }
+Simulation::Simulation(Simulation&& other)
+    : isRunning(other.isRunning),
+      planCounter(other.planCounter),
+      plans(std::move(other.plans)),
+      facilitiesOptions(std::move(other.facilitiesOptions)), 
+      actionsLog(std::move(other.actionsLog)),
+      settlements(std::move(other.settlements)),{
+
+    other.isRunning = false;
+    other.planCounter = 0;
+    other.plans.clear();
+    other.facilitiesOptions.clear();
+    for (auto action : other.actionsLog) {
+        delete action;
+    }
+    for (auto settlement : other.settlements) {
+        delete settlement;
+    }
+}
+
+// Move assignment operator
+Simulation& Simulation::operator=(Simulation&& other) {
+    if (this == &other) {
+        return *this;
+    }
+
+    // Clean up existing resources
+    for (auto settlement : settlements) {
+        delete settlement;
+    }
+    for (auto action : actionsLog) {
+        delete action;
+    }
+
+    // Move data
+    isRunning = other.isRunning;
+    planCounter = other.planCounter;
+    plans = std::move(other.plans);
+    facilitiesOptions = std::move(other.facilitiesOptions);
+    actionsLog = std::move(other.actionsLog);
+    settlements = std::move(other.settlements);
+
+    // Reset the source object
+    other.isRunning = false;
+    other.planCounter = 0;
+    other.plans.clear();
+    other.facilitiesOptions.clear();
+    for (auto action : other.actionsLog) {
+        delete action;
+    }
+    for (auto settlement : other.settlements) {
+        delete settlement;
+    }
+
+    return *this;
+}
