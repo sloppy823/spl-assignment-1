@@ -351,7 +351,7 @@ Simulation &Simulation::operator=(const Simulation &other) {
     for (auto settlement : settlements) {
         delete settlement;
     }
-
+    
     // Copy data
     isRunning = other.isRunning;
     planCounter = other.planCounter;

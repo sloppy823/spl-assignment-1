@@ -28,7 +28,9 @@ class Plan {
         const int getPlanID() const;
         ~Plan();                               // Destructor
         Plan(const Plan &other);               // Copy Constructor
-        Plan &operator=(const Plan &other);    // Copy Assignment Operator
+        Plan(const Plan &&other);  
+        Plan &operator=(const Plan &other) = delete;    // Copy Assignment Operator
+        Plan &operator=(const Plan &other) = delete;    // Copy Assignment Operator
 
         
     private:
