@@ -306,7 +306,7 @@ void Simulation::restore() {
     if (backup == nullptr) {
         throw runtime_error("No backup available");
     }
-    this = &backup; // Overwrite the current simulation with the backup
+    // Overwrite the current simulation with the backup
 }
 
 void Simulation::printActionsLog() const {
@@ -372,14 +372,14 @@ Simulation &Simulation::operator=(const Simulation &other) {
 
     return *this;
 }
+
 Simulation::Simulation(Simulation&& other)
     : isRunning(other.isRunning),
       planCounter(other.planCounter),
       plans(std::move(other.plans)),
       facilitiesOptions(std::move(other.facilitiesOptions)), 
       actionsLog(std::move(other.actionsLog)),
-      settlements(std::move(other.settlements)),{
-
+      settlements(std::move(other.settlements)) {
     other.isRunning = false;
     other.planCounter = 0;
     other.plans.clear();
