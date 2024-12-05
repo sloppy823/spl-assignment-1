@@ -36,7 +36,7 @@ const string Plan::getSelectionPolicyName() {
 
 
 void Plan::step() {
-    int limit = settlement.getsize();
+    int limit = settlement -> getsize();
     // Step 2: Start new facility construction
     if (status == PlanStatus::AVAILABLE) {
         while (underConstruction.size() < (limit)) {
@@ -58,7 +58,7 @@ void Plan::step() {
 
             it = underConstruction.erase(it);
         } else {
-            it.step();
+            ++it;
         }
     }
 
@@ -113,7 +113,4 @@ Plan::Plan(const Plan &other)
         underConstruction.push_back(new Facility(*facility));
     }
 }
-Plan::Plan(const Plan &&other) : 
-{
 
-}

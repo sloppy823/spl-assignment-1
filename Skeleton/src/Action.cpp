@@ -203,7 +203,6 @@ Close *Close::clone() const {
 BackupSimulation::BackupSimulation() {}
 
 void BackupSimulation::act(Simulation &simulation) {
-    if (backup != nullptr) delete backup;
     backup = new Simulation(simulation);
     complete();
 }
