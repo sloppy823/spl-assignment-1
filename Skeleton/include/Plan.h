@@ -16,7 +16,6 @@ class Plan {
         const int getLifeQualityScore() const;
         const int getEconomyScore() const;
         const string getSelectionPolicyName();
-
         const int getEnvironmentScore() const;
         PlanStatus getStatus() const;
         void setSelectionPolicy(SelectionPolicy *selectionPolicy);
@@ -28,7 +27,9 @@ class Plan {
         const int getPlanID() const;
         ~Plan();                               // Destructor
         Plan(const Plan &other);               // Copy Constructor
+        Plan(Plan &&other);               // Move contructor
         Plan &operator=(const Plan &other);    // Copy Assignment Operator
+        Plan &operator=(Plan &&other) = delete;    // move Assignment Operator
 
         
     private:

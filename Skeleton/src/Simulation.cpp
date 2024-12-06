@@ -61,10 +61,7 @@ Simulation::Simulation(const string &configFilePath) : isRunning(false), planCou
                 stream >> facilityName >> category >> price >> lifeQImpact >> ecoImpact >> envImpact;
 
                 FacilityCategory facilityCategory = parseFacilityCategory(category);
-                FacilityType facility(facilityName, facilityCategory, price, lifeQImpact, ecoImpact, envImpact);
-                if (!addFacility(facility)) {
-                    std::cerr << "Facility \"" << facilityName << "\" already exists.\n";
-                }
+                facilitiesOptions.emplace_back(facilityName, facilityCategory, price, lifeQImpact, ecoImpact, envImpact);
             } else {
                 throw runtime_error("Unknown command in configuration file: " + command);
             }
@@ -172,7 +169,9 @@ bool Simulation::addFacility(FacilityType facility) {
         }
     }
 
-    facilitiesOptions.push_back(facility);
+    facilitiesOptions.emplace_back(facility.getName(), facility.getCategory(), facility.getCost(),
+        facility.getLifeQualityScore(), 
+        facility.getEconomyScore(),facility.getEnvironmentScore());
     return true;
 }
 
@@ -306,7 +305,7 @@ void Simulation::restore() {
     if (backup == nullptr) {
         throw runtime_error("No backup available");
     }
-    this = &backup; // Overwrite the current simulation with the backup
+    // Overwrite the current simulation with the backup
 }
 
 void Simulation::printActionsLog() const {
@@ -328,13 +327,24 @@ Simulation::~Simulation() {
 Simulation::Simulation(const Simulation &other)
     : isRunning(other.isRunning),
       planCounter(other.planCounter),
+      actionsLog(),
       plans(other.plans),
+      settlements(),
       facilitiesOptions(other.facilitiesOptions) {
     for (auto action : other.actionsLog) {
         actionsLog.push_back(action->clone());
     }
     for (auto settlement : other.settlements) {
         settlements.push_back(new Settlement(*settlement));
+    }
+    for (const auto &facility : other.facilitiesOptions) {
+        facilitiesOptions.emplace_back(
+            facility.getName(),
+            facility.getCategory(),
+            facility.getCost(),
+            facility.getLifeQualityScore(),
+            facility.getEconomyScore(),
+            facility.getEnvironmentScore());
     }
 }
 
@@ -352,22 +362,85 @@ Simulation &Simulation::operator=(const Simulation &other) {
         delete settlement;
     }
 
-    // Copy data
-    isRunning = other.isRunning;
-    planCounter = other.planCounter;
-    plans = other.plans;
-    facilitiesOptions = other.facilitiesOptions;
-
-    // Deep copy actions
+    // Clear and deep copy data
     actionsLog.clear();
     for (auto action : other.actionsLog) {
         actionsLog.push_back(action->clone());
     }
 
-    // Deep copy settlements
     settlements.clear();
     for (auto settlement : other.settlements) {
         settlements.push_back(new Settlement(*settlement));
+    }
+
+    facilitiesOptions.clear();
+    for (const auto &facility : other.facilitiesOptions) {
+        facilitiesOptions.emplace_back(
+            facility.getName(),
+            facility.getCategory(),
+            facility.getCost(),
+            facility.getLifeQualityScore(),
+            facility.getEconomyScore(),
+            facility.getEnvironmentScore());
+    }
+
+    isRunning = other.isRunning;
+    planCounter = other.planCounter;
+    plans = other.plans;
+
+    return *this;
+}
+Simulation::Simulation(Simulation&& other)
+    : isRunning(other.isRunning),
+      planCounter(other.planCounter),
+      actionsLog(std::move(other.actionsLog)),
+      plans(std::move(other.plans)),
+      settlements(std::move(other.settlements)),
+      facilitiesOptions(std::move(other.facilitiesOptions))  {
+    other.isRunning = false;
+    other.planCounter = 0;
+    other.plans.clear();
+    other.facilitiesOptions.clear();
+    for (auto action : other.actionsLog) {
+        delete action;
+    }
+    for (auto settlement : other.settlements) {
+        delete settlement;
+    }
+}
+
+// Move assignment operator
+Simulation& Simulation::operator=(Simulation&& other) {
+    if (this == &other) {
+        return *this;
+    }
+
+    // Clean up existing resources
+    for (auto settlement : settlements) {
+        delete settlement;
+    }
+    for (auto action : actionsLog) {
+        delete action;
+    }
+
+    // Move data
+    isRunning = other.isRunning;
+    planCounter = other.planCounter;
+    plans = std::move(other.plans);
+    facilitiesOptions = std::move(other.facilitiesOptions);
+    actionsLog = std::move(other.actionsLog);
+    settlements = std::move(other.settlements);
+
+    // Reset the source object
+    other.isRunning = false;
+    other.planCounter = 0;
+    other.plans.clear();
+    other.facilitiesOptions.clear();
+    for (auto action : other.actionsLog) {
+        delete action;
+    }
+    for (auto settlement : other.settlements) {
+        delete settlement;
     }
 
     return *this;
