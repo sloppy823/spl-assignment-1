@@ -234,3 +234,10 @@ RestoreSimulation* RestoreSimulation::clone() const {
 const string RestoreSimulation::toString() const {
     return "restore COMPLETED";
 }
+BackupSimulation *BackupSimulation::clone() const {
+    
+    return new BackupSimulation(*this);
+}
+RestoreSimulation *RestoreSimulation::clone() const {
+    return new RestoreSimulation(*this);
+}
