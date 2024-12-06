@@ -11,3 +11,7 @@ SettlementType Settlement::getType() const {
     return type;
 }
 
+const int Settlement::getsize() const{
+    return (int)(type) +1;
+}
+

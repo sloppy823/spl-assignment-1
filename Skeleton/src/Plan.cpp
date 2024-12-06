@@ -5,8 +5,9 @@
 #include <string>
 
 Plan::Plan(const int planId, const Settlement &settlement, SelectionPolicy *selectionPolicy, const vector<FacilityType> &facilityOptions)
-    : plan_id(planId), settlement(&settlement), selectionPolicy(selectionPolicy), status(PlanStatus::AVAILABLE),
-      facilityOptions(facilityOptions), life_quality_score(0), economy_score(0), environment_score(0) {}
+    : plan_id(planId), settlement(&settlement), selectionPolicy(selectionPolicy), status(PlanStatus::AVAILABLE), 
+        facilities(), underConstruction(),
+        facilityOptions(facilityOptions), life_quality_score(0), economy_score(0), environment_score(0) {}
 const int Plan::getLifeQualityScore() const {
     return life_quality_score;
 }
@@ -36,30 +37,15 @@ const string Plan::getSelectionPolicyName() {
 
 
 void Plan::step() {
-    SettlementType type =settlement->getType();
-    int limit = 0;
-    if(type == SettlementType::VILLAGE)
-        limit = 1;
-    else {
-        if(type == SettlementType::CITY)
-            limit = 2;
-        else
-            limit = 3;
-        }
+    int limit = settlement -> getsize();
     // Step 2: Start new facility construction
     if (status == PlanStatus::AVAILABLE) {
-        while (underConstruction.size() < static_cast<size_t>(limit)) {
-            try {
-                const FacilityType &selected = selectionPolicy->selectFacility(facilityOptions);
-                Facility *newFacility = new Facility(selected, settlement->getName());
-                underConstruction.push_back(newFacility);
-            } catch (std::exception &e) {
-                // No more facilities can be selected
-                break;
-            }
+        while ((int)underConstruction.size() < (limit)) {
+            const FacilityType &selected = selectionPolicy->selectFacility(facilityOptions);
+            Facility *newFacility = new Facility(selected, settlement->getName());
+            underConstruction.push_back(newFacility);
         }
     }
-
     // Step 3: Update facilities under construction
     for (auto it = underConstruction.begin(); it != underConstruction.end();) {
         (*it)->step();
@@ -78,8 +64,7 @@ void Plan::step() {
     }
 
     // Step 4: Update plan status
-    status = (underConstruction.size() == limit) ? PlanStatus::BUSY : PlanStatus::AVAILABLE;
-    status = (underConstruction.size() == static_cast<size_t>(limit)) ? PlanStatus::BUSY : PlanStatus::AVAILABLE;
+    status = ((int)underConstruction.size() == limit) ? PlanStatus::BUSY : PlanStatus::AVAILABLE;
 }
 
 void Plan::addFacility(Facility *facility) {
@@ -117,8 +102,10 @@ Plan::Plan(const Plan &other)
     : plan_id(other.plan_id),
       settlement(other.settlement),
       selectionPolicy(other.selectionPolicy ? other.selectionPolicy->clone() : nullptr),
-      facilityOptions(other.facilityOptions),
       status(other.status),
+      facilities(), 
+      underConstruction(),
+      facilityOptions(other.facilityOptions),
       life_quality_score(other.life_quality_score),
       economy_score(other.economy_score),
       environment_score(other.environment_score) {
@@ -130,7 +117,6 @@ Plan::Plan(const Plan &other)
     }
 }
 
-// Copy Assignment Operator
 Plan& Plan::operator=(const Plan& other) {
     if (this == &other) {
         return *this; // Handle self-assignment
@@ -170,3 +156,4 @@ Plan& Plan::operator=(const Plan& other) {
     // Do not copy facilityOptions because it is const
     return *this;
 }
+
