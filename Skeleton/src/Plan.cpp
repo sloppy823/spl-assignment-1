@@ -5,8 +5,9 @@
 #include <string>
 
 Plan::Plan(const int planId, const Settlement &settlement, SelectionPolicy *selectionPolicy, const vector<FacilityType> &facilityOptions)
-    : plan_id(planId), settlement(&settlement), selectionPolicy(selectionPolicy), status(PlanStatus::AVAILABLE),
-      facilityOptions(facilityOptions), life_quality_score(0), economy_score(0), environment_score(0) {}
+    : plan_id(planId), settlement(&settlement), selectionPolicy(selectionPolicy), status(PlanStatus::AVAILABLE), 
+        facilities(), underConstruction(),
+        facilityOptions(facilityOptions), life_quality_score(0), economy_score(0), environment_score(0) {}
 const int Plan::getLifeQualityScore() const {
     return life_quality_score;
 }
@@ -39,7 +40,7 @@ void Plan::step() {
     int limit = settlement -> getsize();
     // Step 2: Start new facility construction
     if (status == PlanStatus::AVAILABLE) {
-        while (underConstruction.size() < (limit)) {
+        while ((int)underConstruction.size() < (limit)) {
             const FacilityType &selected = selectionPolicy->selectFacility(facilityOptions);
             Facility *newFacility = new Facility(selected, settlement->getName());
             underConstruction.push_back(newFacility);
@@ -63,7 +64,7 @@ void Plan::step() {
     }
 
     // Step 4: Update plan status
-    status = (underConstruction.size() == limit) ? PlanStatus::BUSY : PlanStatus::AVAILABLE;
+    status = ((int)underConstruction.size() == limit) ? PlanStatus::BUSY : PlanStatus::AVAILABLE;
 }
 
 void Plan::addFacility(Facility *facility) {
@@ -101,8 +102,10 @@ Plan::Plan(const Plan &other)
     : plan_id(other.plan_id),
       settlement(other.settlement),
       selectionPolicy(other.selectionPolicy ? other.selectionPolicy->clone() : nullptr),
-      facilityOptions(other.facilityOptions),
       status(other.status),
+      facilities(), 
+      underConstruction(),
+      facilityOptions(other.facilityOptions),
       life_quality_score(other.life_quality_score),
       economy_score(other.economy_score),
       environment_score(other.environment_score) {
@@ -112,5 +115,45 @@ Plan::Plan(const Plan &other)
     for (auto facility : other.underConstruction) {
         underConstruction.push_back(new Facility(*facility));
     }
+}
+
+Plan& Plan::operator=(const Plan& other) {
+    if (this == &other) {
+        return *this; // Handle self-assignment
+    }
+
+    // Assign other members
+    plan_id = other.plan_id;
+    status = other.status;
+    life_quality_score = other.life_quality_score;
+    economy_score = other.economy_score;
+    environment_score = other.environment_score;
+
+    // Deep copy settlement
+    delete settlement;
+    settlement = new Settlement(*other.settlement);
+
+    // Deep copy selectionPolicy
+    delete selectionPolicy;
+    selectionPolicy = other.selectionPolicy ? other.selectionPolicy->clone() : nullptr;
+
+    // Deep copy facilities and underConstruction
+    for (auto* facility : facilities) {
+        delete facility;
+    }
+    facilities.clear();
+    for (auto* facility : underConstruction) {
+        delete facility;
+    }
+    underConstruction.clear();
+    for (auto* facility : other.facilities) {
+        facilities.push_back(new Facility(*facility));
+    }
+    for (auto* facility : other.underConstruction) {
+        underConstruction.push_back(new Facility(*facility));
+    }
+
+    // Do not copy facilityOptions because it is const
+    return *this;
 }
 

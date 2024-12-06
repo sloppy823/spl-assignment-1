@@ -12,8 +12,6 @@ class SelectionPolicy;
 
 class Simulation {
     public:
-        Simulation(Simulation&& other) ;
-        Simulation& operator=(Simulation&& other) ;
         Simulation(const string &configFilePath);
         void start();
         void addPlan(const Settlement *settlement, SelectionPolicy *selectionPolicy);
@@ -37,8 +35,8 @@ class Simulation {
         ~Simulation();                         // Destructor
         Simulation(const Simulation &other);   // Copy Constructor
         Simulation &operator=(const Simulation &other); // Copy Assignment Operator
-        Simulation(Simulation&& other) ;
-        Simulation& operator=(Simulation&& other) ;
+        Simulation(Simulation&& other);
+        Simulation& operator=(Simulation&& other);
     private:
         bool isRunning;
         int planCounter; //For assigning unique plan IDs
