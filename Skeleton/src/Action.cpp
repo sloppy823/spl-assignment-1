@@ -128,7 +128,9 @@ AddFacility *AddFacility::clone() const {
 }
 
 // PrintPlanStatus Implementation
-PrintPlanStatus::PrintPlanStatus(int planId) : planId(planId) {}
+PrintPlanStatus::PrintPlanStatus(int planId) : planId(planId) {
+    
+}
 
 void PrintPlanStatus::act(Simulation &simulation) {
     try {
@@ -225,4 +227,11 @@ void RestoreSimulation::act(Simulation &simulation) {
 
 const string RestoreSimulation::toString() const {
     return "restore COMPLETED";
+}
+BackupSimulation *BackupSimulation::clone() const {
+    
+    return new BackupSimulation(*this);
+}
+RestoreSimulation *RestoreSimulation::clone() const {
+    return new RestoreSimulation(*this);
 }

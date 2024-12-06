@@ -17,7 +17,6 @@ Simulation::Simulation(const string &configFilePath) : isRunning(false), planCou
     if (!configFile.is_open()) {
         throw runtime_error("Failed to open configuration file: " + configFilePath);
     }
-
     string line;
     while (getline(configFile, line)) {
         std::istringstream stream(line);
@@ -47,7 +46,7 @@ Simulation::Simulation(const string &configFilePath) : isRunning(false), planCou
                     throw runtime_error("Unknown selection policy: " + policyType);
                 }
                 addPlan(settlement, policy);
-            } else if (command == "Settlement") {
+            } else if (command == "settlement") {
                 string settlementName;
                 int settlementType;
                 stream >> settlementName >> settlementType;
@@ -55,7 +54,7 @@ Simulation::Simulation(const string &configFilePath) : isRunning(false), planCou
                 if (!addSettlement(settlement)) {
                     delete settlement; // Prevent memory leak
                 }
-            } else if (command == "Facility") {
+            } else if (command == "facility") {
                 string facilityName, category;
                 int price, lifeQImpact, ecoImpact, envImpact;
                 stream >> facilityName >> category >> price >> lifeQImpact >> ecoImpact >> envImpact;
@@ -71,13 +70,14 @@ Simulation::Simulation(const string &configFilePath) : isRunning(false), planCou
         }
     }
 }
+
 void Simulation::start() {
     open();
     std::cout << "The simulation has started" << std::endl;
 
     string line;
     while (isRunning && std::getline(std::cin, line)) {
-        if (line.empty() || line[0] == '#') continue;
+        if (line.empty() || line[0] == '#') continue; // Skip empty lines and comments
 
         std::istringstream stream(line);
         string command;
@@ -94,26 +94,46 @@ void Simulation::start() {
                 string settlementName, policyType;
                 stream >> settlementName >> policyType;
                 action = new AddPlan(settlementName, policyType);
+            } else if (command == "planStatus") {
+                int planID;
+                stream >> planID;
+                std::cout << "Number of plans: " << plans.size() << std::endl;
+                action = new PrintPlanStatus(planID);
+            } else if (command == "settlement") {
+                string settlementName;
+                int settlementType;
+                stream >> settlementName >> settlementType;
+                action = new AddSettlement(settlementName, static_cast<SettlementType>(settlementType));
+            } else if (command == "facility") {
+                string facilityName;
+                int category, price, lifeQualityScore, economyScore, environmentScore;
+                stream >> facilityName >> category >> price >> lifeQualityScore >> economyScore >> environmentScore;
+                action = new AddFacility(
+                    facilityName, 
+                    static_cast<FacilityCategory>(category), 
+                    price, 
+                    lifeQualityScore, 
+                    economyScore, 
+                    environmentScore
+                );
             } else if (command == "backup") {
                 action = new BackupSimulation();
             } else if (command == "restore") {
                 action = new RestoreSimulation();
-            } else if (command == "planStatus") {
-                int planID;
-                stream >> planID;
-                action = new PrintPlanStatus(planID);
+            } else if (command == "log") {
+                action = new PrintActionsLog();
             } else if (command == "close") {
                 action = new Close();
             } else {
                 throw runtime_error("Unknown command: " + command);
             }
-
             if (action) {
-                action->act(*this);
-                actionsLog.push_back(action);
+                action->act(*this); // Perform the action on the simulation
+                actionsLog.push_back(action); // Log the action
             }
         } catch (const std::exception &e) {
-            std::cerr << "Error processing command: " << e.what() << std::endl;
+            std::cerr << "Error processing command: " << line << "\n"
+                      << e.what() << std::endl;
         }
     }
 }
@@ -132,7 +152,6 @@ void Simulation::addPlan(const Settlement *settlement, SelectionPolicy *selectio
     // Ownership of selectionPolicy is transferred to the Plan object
     plans.emplace_back(planCounter++, *settlement, selectionPolicy, facilitiesOptions);
 }
-
 
 // Adds a new action to the log
 void Simulation::addAction(BaseAction *action) {
@@ -242,11 +261,11 @@ void Simulation::open() {
 }
 
 FacilityCategory Simulation::parseFacilityCategory(const string &category) {
-    if (category == "life_quality") {
+    if (category == "0") {
         return FacilityCategory::LIFE_QUALITY;
-    } else if (category == "economy") {
+    } else if (category == "1") {
         return FacilityCategory::ECONOMY;
-    } else if (category == "environment") {
+    } else if (category == "2") {
         return FacilityCategory::ENVIRONMENT;
     }
     throw runtime_error("Unknown facility category: " + category);
@@ -305,7 +324,7 @@ void Simulation::restore() {
     if (backup == nullptr) {
         throw runtime_error("No backup available");
     }
-    // Overwrite the current simulation with the backup
+    *this = *backup; // Deep copy backup to the current simulation
 }
 
 void Simulation::printActionsLog() const {
@@ -390,6 +409,7 @@ Simulation &Simulation::operator=(const Simulation &other) {
 
     return *this;
 }
+
 Simulation::Simulation(Simulation&& other)
     : isRunning(other.isRunning),
       planCounter(other.planCounter),
