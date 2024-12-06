@@ -47,7 +47,7 @@ Simulation::Simulation(const string &configFilePath) : isRunning(false), planCou
                     throw runtime_error("Unknown selection policy: " + policyType);
                 }
                 addPlan(settlement, policy);
-            } else if (command == "Settlement") {
+            } else if (command == "settlement") {
                 string settlementName;
                 int settlementType;
                 stream >> settlementName >> settlementType;
@@ -55,7 +55,7 @@ Simulation::Simulation(const string &configFilePath) : isRunning(false), planCou
                 if (!addSettlement(settlement)) {
                     delete settlement; // Prevent memory leak
                 }
-            } else if (command == "Facility") {
+            } else if (command == "facility") {
                 string facilityName, category;
                 int price, lifeQImpact, ecoImpact, envImpact;
                 stream >> facilityName >> category >> price >> lifeQImpact >> ecoImpact >> envImpact;
@@ -242,11 +242,11 @@ void Simulation::open() {
 }
 
 FacilityCategory Simulation::parseFacilityCategory(const string &category) {
-    if (category == "life_quality") {
+    if (category == "0") {
         return FacilityCategory::LIFE_QUALITY;
-    } else if (category == "economy") {
+    } else if (category == "1") {
         return FacilityCategory::ECONOMY;
-    } else if (category == "environment") {
+    } else if (category == "2") {
         return FacilityCategory::ENVIRONMENT;
     }
     throw runtime_error("Unknown facility category: " + category);
