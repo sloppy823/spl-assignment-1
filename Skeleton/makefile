@@ -1,7 +1,7 @@
 all: clean compile link
 
 link:
-	g++ -o main bin/*.o
+	g++ -o simulation bin/*.o
 
 compile: main Action Auxiliary Facility Plan SelectionPolicy Settlement Simulation
 

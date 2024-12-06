@@ -26,6 +26,7 @@ class Simulation {
         std::vector<Plan> &getPlans();
         void open();
         FacilityCategory parseFacilityCategory(const string &category);
+        SettlementType parseSettlementType(int type);
         SelectionPolicy *createPolicy(const string &policyType);
         void changePlanPolicy(int planID, const string &newPolicy);
         void getPlanStatus(int planID);
