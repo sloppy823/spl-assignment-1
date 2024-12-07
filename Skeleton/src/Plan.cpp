@@ -3,7 +3,7 @@
 #include <algorithm>
 #include <iostream> 
 #include <string>
-
+#include <sstream>
 Plan::Plan(const int planId, const Settlement &settlement, SelectionPolicy *selectionPolicy, const vector<FacilityType> &facilityOptions)
     : plan_id(planId), settlement(&settlement), selectionPolicy(selectionPolicy), status(PlanStatus::AVAILABLE), 
         facilities(), underConstruction(),
@@ -76,8 +76,12 @@ void Plan::addFacility(Facility *facility) {
 }
 
 const string Plan::toString() const {
-    return "PlanID: " + std::to_string(plan_id) + ", Settlement: " + settlement->getName() + 
-           ", Status: " + ((status == PlanStatus::AVAILABLE) ? "AVAILABLE" : "BUSY");
+    std::ostringstream oss;
+    oss << "PlanID: " << plan_id << "\n";
+    oss << "SettlementName: " << settlement->getName() << "\n";
+    oss << "PlanStatus: " << ((status == PlanStatus::AVAILABLE) ? "AVAILABLE" : "BUSY") << "\n";
+    oss << "SelectionPolicy: " << selectionPolicy->getType() << "";
+    return oss.str();
 }
 
 void Plan::printStatus() {
@@ -85,6 +89,15 @@ void Plan::printStatus() {
     std::cout << "Life Quality Score: " << life_quality_score << std::endl;
     std::cout << "Economy Score: " << economy_score << std::endl;
     std::cout << "Environment Score: " << environment_score << std::endl;
+    for (const auto &facility : underConstruction) {
+        std::cout << "FacilityName: " << facility->getName() << std::endl;
+        std::cout << ", FacilityStatus: " << ((facility->getStatus() == FacilityStatus::OPERATIONAL) ? "OPERATIONAL" : "UNDER_CONSTRUCTION") << std::endl;
+    }
+    for (const auto &facility : facilities) {
+        std::cout << "FacilityName: " << facility->getName() << std::endl;
+        std::cout << "FacilityStatus: " << ((facility->getStatus() == FacilityStatus::OPERATIONAL) ? "OPERATIONAL" : "UNDER_CONSTRUCTION") << std::endl;
+    }
+    
 }
 
 Plan::~Plan() {

@@ -2,6 +2,10 @@
 
 Settlement::Settlement(const string &name, SettlementType type)
     : name(name), type(type) {}
+Settlement::Settlement(const string &name, int type) : name(name), type()
+{
+    this->type = SettlementType(type);
+}
 
 const string& Settlement::getName() const {
     return name;

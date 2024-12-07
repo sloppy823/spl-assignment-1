@@ -50,7 +50,7 @@ Simulation::Simulation(const string &configFilePath) : isRunning(false), planCou
                 string settlementName;
                 int settlementType;
                 stream >> settlementName >> settlementType;
-                auto settlement = new Settlement(settlementName, static_cast<SettlementType>(settlementType));
+                auto settlement = new Settlement(settlementName, (settlementType));
                 if (!addSettlement(settlement)) {
                     delete settlement; // Prevent memory leak
                 }
@@ -83,7 +83,7 @@ void Simulation::start() {
         string command;
         stream >> command;
 
-        try {
+        
             BaseAction *action = nullptr;
 
             if (command == "step") {
@@ -97,7 +97,6 @@ void Simulation::start() {
             } else if (command == "planStatus") {
                 int planID;
                 stream >> planID;
-                std::cout << "Number of plans: " << plans.size() << std::endl;
                 action = new PrintPlanStatus(planID);
             } else if (command == "settlement") {
                 string settlementName;
@@ -131,10 +130,7 @@ void Simulation::start() {
                 action->act(*this); // Perform the action on the simulation
                 actionsLog.push_back(action); // Log the action
             }
-        } catch (const std::exception &e) {
-            std::cerr << "Error processing command: " << line << "\n"
-                      << e.what() << std::endl;
-        }
+        
     }
 }
 
@@ -249,6 +245,9 @@ void Simulation::close() {
     isRunning = false;
 }
 
+std::vector<Plan>& Simulation::getPlans() {
+    return plans;
+}
 // Reopens the simulation
 void Simulation::open() {
     if (isRunning) {
@@ -275,7 +274,7 @@ SelectionPolicy *Simulation::createPolicy(const string &policyType) {
     if (policyType == "eco") {
         return new EconomySelection();
     } else if (policyType == "bal") {
-        return new BalancedSelection(0, 0, 0); // Example default scores
+        return new BalancedSelection(0, 0, 0); 
     } else if (policyType == "env") {
         return new SustainabilitySelection();
     } else if (policyType == "nve") {

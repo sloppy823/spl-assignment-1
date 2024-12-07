@@ -190,7 +190,11 @@ PrintActionsLog *PrintActionsLog::clone() const {
 Close::Close() {}
 
 void Close::act(Simulation &simulation) {
-    simulation.close();
+    simulation.close(); // Stop simulation
+    const auto &plans = simulation.getPlans();
+    for (auto plan : plans) {
+        plan.printStatus();
+    }
     complete();
 }
 
