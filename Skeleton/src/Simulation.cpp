@@ -3,15 +3,15 @@
 #include "Action.h"
 #include <stdexcept>
 #include <iostream>
-#include <algorithm> // for std::find_if
-#include <fstream>      // For std::ifstream
-#include <sstream>      // For std::istringstream
+#include <algorithm> 
+#include <fstream>      
+#include <sstream>      
 using std::logic_error;
 using std::runtime_error;
 using std::find_if;
 class Simulation;
 extern Simulation* backup;
-// Constructor
+
 Simulation::Simulation(const string &configFilePath) : isRunning(false), planCounter(0), actionsLog(), plans(), settlements(), facilitiesOptions() {
     std::ifstream configFile(configFilePath);
     if (!configFile.is_open()) {

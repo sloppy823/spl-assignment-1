@@ -5,7 +5,7 @@
 #include <string>
 #include <sstream>
 Plan::Plan(const int planId, const Settlement &settlement, SelectionPolicy *selectionPolicy, const vector<FacilityType> &facilityOptions)
-    : plan_id(planId), settlement(&settlement), selectionPolicy(selectionPolicy), status(PlanStatus::AVAILABLE), 
+    : plan_id(planId), settlement(settlement), selectionPolicy(selectionPolicy), status(PlanStatus::AVAILABLE), 
         facilities(), underConstruction(),
         facilityOptions(facilityOptions), life_quality_score(0), economy_score(0), environment_score(0) {}
 const int Plan::getLifeQualityScore() const {
@@ -37,7 +37,7 @@ const string Plan::getSelectionPolicyName() {
 
 
 void Plan::step() {
-    int limit = settlement -> getsize();
+    int limit = settlement.getsize();
     // Step 2: Start new facility construction
     if (status == PlanStatus::AVAILABLE) {
         while ((int)underConstruction.size() < (limit)) {
@@ -45,7 +45,7 @@ void Plan::step() {
             if (selectionPolicy->getType() == "bal"){
                 selectionPolicy->update(selected);
             }
-            Facility *newFacility = new Facility(selected, settlement->getName());
+            Facility *newFacility = new Facility(selected, settlement.getName());
             underConstruction.push_back(newFacility);
         }
     }
@@ -81,7 +81,7 @@ void Plan::addFacility(Facility *facility) {
 const string Plan::toString() const {
     std::ostringstream oss;
     oss << "PlanID: " << plan_id << "\n";
-    oss << "SettlementName: " << settlement->getName() << "\n";
+    oss << "SettlementName: " << settlement.getName() << "\n";
     oss << "PlanStatus: " << ((status == PlanStatus::AVAILABLE) ? "AVAILABLE" : "BUSY") << "\n";
     oss << "SelectionPolicy: " << selectionPolicy->getType() << "";
     return oss.str();
@@ -103,6 +103,15 @@ void Plan::printStatus() {
     
 }
 
+void Plan::closePrintStatus() {
+    std::cout << "PlanID: " << plan_id<< std::endl;  // Assuming you have a function getId() to retrieve the plan's ID
+    std::cout << "SettlementName: " << settlement.getName()<< std::endl;  // Assuming you have a function to get the settlement name
+    std::cout << "LifeQualityScore: " << life_quality_score << std::endl;
+    std::cout << "EconomyScore: " << economy_score << std::endl;
+    std::cout << "EnvironmentScore: " << environment_score << std::endl;
+}
+
+
 Plan::~Plan() {
     delete selectionPolicy;
     for (auto facility : facilities) {
@@ -116,7 +125,7 @@ Plan::~Plan() {
 // Copy Constructor
 Plan::Plan(const Plan &other)
     : plan_id(other.plan_id),
-      settlement(new Settlement(*other.settlement)), 
+      settlement(other.settlement), 
       selectionPolicy(other.selectionPolicy ? other.selectionPolicy->clone() : nullptr),
       status(other.status),
       facilities(),
@@ -146,10 +155,6 @@ Plan& Plan::operator=(const Plan& other) {
     life_quality_score = other.life_quality_score;
     economy_score = other.economy_score;
     environment_score = other.environment_score;
-
-    // Deep copy settlement
-    delete settlement;
-    settlement = new Settlement(*other.settlement);
 
     // Deep copy selectionPolicy
     delete selectionPolicy;
