@@ -214,7 +214,7 @@ void BackupSimulation::act(Simulation &simulation) {
 }
 
 const string BackupSimulation::toString() const {
-    return "backup COMPLETED";
+    return "backup";
 }
 
 // RestoreSimulation
@@ -230,7 +230,7 @@ void RestoreSimulation::act(Simulation &simulation) {
 }
 
 const string RestoreSimulation::toString() const {
-    return "restore COMPLETED";
+    return "restore";
 }
 BackupSimulation *BackupSimulation::clone() const {
     
@@ -238,4 +238,8 @@ BackupSimulation *BackupSimulation::clone() const {
 }
 RestoreSimulation *RestoreSimulation::clone() const {
     return new RestoreSimulation(*this);
+}
+
+void BaseAction::reportError(const std::string &errorMsg) {
+    error(errorMsg);
 }

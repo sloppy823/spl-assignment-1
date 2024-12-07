@@ -77,15 +77,14 @@ void Simulation::start() {
 
     string line;
     while (isRunning && std::getline(std::cin, line)) {
-        if (line.empty() || line[0] == '#') continue; // Skip empty lines and comments
+        if (line.empty() || line[0] == '#') continue;
 
         std::istringstream stream(line);
         string command;
         stream >> command;
 
-        
-            BaseAction *action = nullptr;
-
+        BaseAction *action = nullptr;
+        try {
             if (command == "step") {
                 int steps;
                 stream >> steps;
@@ -94,43 +93,51 @@ void Simulation::start() {
                 string settlementName, policyType;
                 stream >> settlementName >> policyType;
                 action = new AddPlan(settlementName, policyType);
-            } else if (command == "planStatus") {
-                int planID;
-                stream >> planID;
-                action = new PrintPlanStatus(planID);
             } else if (command == "settlement") {
                 string settlementName;
                 int settlementType;
                 stream >> settlementName >> settlementType;
                 action = new AddSettlement(settlementName, static_cast<SettlementType>(settlementType));
             } else if (command == "facility") {
-                string facilityName;
-                int category, price, lifeQualityScore, economyScore, environmentScore;
-                stream >> facilityName >> category >> price >> lifeQualityScore >> economyScore >> environmentScore;
-                action = new AddFacility(
-                    facilityName, 
-                    static_cast<FacilityCategory>(category), 
-                    price, 
-                    lifeQualityScore, 
-                    economyScore, 
-                    environmentScore
-                );
+                string facilityName, category;
+                int price, lifeQImpact, ecoImpact, envImpact;
+                stream >> facilityName >> category >> price >> lifeQImpact >> ecoImpact >> envImpact;
+                FacilityCategory facilityCategory = parseFacilityCategory(category);
+                action = new AddFacility(facilityName, facilityCategory, price, lifeQImpact, ecoImpact, envImpact);
             } else if (command == "backup") {
                 action = new BackupSimulation();
             } else if (command == "restore") {
                 action = new RestoreSimulation();
-            } else if (command == "log") {
-                action = new PrintActionsLog();
+            } else if (command == "planStatus") {
+                int planID;
+                stream >> planID;
+                action = new PrintPlanStatus(planID);
+            } else if (command == "changePolicy") {
+                int planID;
+                string newPolicyType;
+                stream >> planID >> newPolicyType;
+                action = new ChangePlanPolicy(planID, newPolicyType);
             } else if (command == "close") {
                 action = new Close();
+            } else if (command == "log") {
+                action = new PrintActionsLog();
             } else {
                 throw runtime_error("Unknown command: " + command);
             }
+
             if (action) {
-                action->act(*this); // Perform the action on the simulation
-                actionsLog.push_back(action); // Log the action
+                action->act(*this);
+                actionsLog.push_back(action);
             }
-        
+        } catch (const std::exception &e) {
+            if (action) {
+                // Safely report the error if the action was created successfully
+                action->reportError(e.what());
+                actionsLog.push_back(action);
+            } else {
+                std::cerr << "Error processing command: " << e.what() << std::endl;
+            }
+        }
     }
 }
 
@@ -328,7 +335,10 @@ void Simulation::restore() {
 
 void Simulation::printActionsLog() const {
     for (const auto &action : actionsLog) {
-        std::cout << action->toString() << std::endl;
+        std::cout << action->toString() 
+                  << " " 
+                  << (action->getStatus() == ActionStatus::COMPLETED ? "COMPLETED" : "ERROR")
+                  << std::endl;
     }
 }
 

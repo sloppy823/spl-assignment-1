@@ -34,7 +34,6 @@ const FacilityType& BalancedSelection::selectFacility(const vector<FacilityType>
     if (facilitiesOptions.empty()) {
         throw std::logic_error("No facilities available for selection.");
     }
-
     // Lambda to calculate balance difference
     auto balanceDifference = [this](const FacilityType& facility) {
         int updatedScores[] = {
@@ -44,12 +43,17 @@ const FacilityType& BalancedSelection::selectFacility(const vector<FacilityType>
         };
         return *std::max_element(updatedScores, updatedScores + 3) - *std::min_element(updatedScores, updatedScores + 3);
     };
-
     // Select facility with the smallest balance difference
-    return *std::min_element(facilitiesOptions.begin(), facilitiesOptions.end(),
-                             [&](const FacilityType& a, const FacilityType& b) {
-                                 return balanceDifference(a) < balanceDifference(b);
-                             });
+    int minBalanceDifference = balanceDifference(facilitiesOptions[0]);
+    int minBalanceIndex = 0;
+    for (size_t i = 1; i < facilitiesOptions.size(); ++i) {
+        int currentBalanceDifference = balanceDifference(facilitiesOptions[i]);
+        if (currentBalanceDifference < minBalanceDifference) {
+            minBalanceDifference = currentBalanceDifference;
+            minBalanceIndex = i;
+        }
+    }
+    return facilitiesOptions[minBalanceIndex];
 }
 
 const string BalancedSelection::toString() const {

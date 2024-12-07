@@ -86,12 +86,12 @@ const string Plan::toString() const {
 
 void Plan::printStatus() {
     std::cout << toString() << std::endl;
-    std::cout << "Life Quality Score: " << life_quality_score << std::endl;
-    std::cout << "Economy Score: " << economy_score << std::endl;
-    std::cout << "Environment Score: " << environment_score << std::endl;
+    std::cout << "LifeQualityScore: " << life_quality_score << std::endl;
+    std::cout << "EconomyScore: " << economy_score << std::endl;
+    std::cout << "EnvironmentScore: " << environment_score << std::endl;
     for (const auto &facility : underConstruction) {
         std::cout << "FacilityName: " << facility->getName() << std::endl;
-        std::cout << ", FacilityStatus: " << ((facility->getStatus() == FacilityStatus::OPERATIONAL) ? "OPERATIONAL" : "UNDER_CONSTRUCTION") << std::endl;
+        std::cout << "FacilityStatus: " << ((facility->getStatus() == FacilityStatus::OPERATIONAL) ? "OPERATIONAL" : "UNDER_CONSTRUCTION") << std::endl;
     }
     for (const auto &facility : facilities) {
         std::cout << "FacilityName: " << facility->getName() << std::endl;
