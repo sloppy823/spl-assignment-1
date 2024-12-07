@@ -193,7 +193,7 @@ void Close::act(Simulation &simulation) {
     simulation.close(); // Stop simulation
     const auto &plans = simulation.getPlans();
     for (auto plan : plans) {
-        plan.printStatus();
+        plan.closePrintStatus();
     }
     complete();
 }

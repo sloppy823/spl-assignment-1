@@ -104,6 +104,15 @@ void Plan::printStatus() {
     
 }
 
+void Plan::closePrintStatus() {
+    std::cout << "PlanID: " << plan_id<< std::endl;  // Assuming you have a function getId() to retrieve the plan's ID
+    std::cout << "SettlementName: " << settlement->getName()<< std::endl;  // Assuming you have a function to get the settlement name
+    std::cout << "LifeQualityScore: " << life_quality_score << std::endl;
+    std::cout << "EconomyScore: " << economy_score << std::endl;
+    std::cout << "EnvironmentScore: " << environment_score << std::endl;
+}
+
+
 Plan::~Plan() {
     delete selectionPolicy;
     for (auto facility : facilities) {
