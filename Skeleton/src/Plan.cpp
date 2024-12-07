@@ -24,6 +24,7 @@ const int Plan::getEnvironmentScore() const {
 
 void Plan::setSelectionPolicy(SelectionPolicy *newSelectionPolicy) {
     if (selectionPolicy != newSelectionPolicy) {
+        delete selectionPolicy;
         selectionPolicy = newSelectionPolicy;
     }
 }
