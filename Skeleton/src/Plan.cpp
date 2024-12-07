@@ -42,6 +42,7 @@ void Plan::step() {
     // Step 2: Start new facility construction
     if (status == PlanStatus::AVAILABLE) {
         while ((int)underConstruction.size() < (limit)) {
+            
             const FacilityType &selected = selectionPolicy->selectFacility(facilityOptions);
             if (selectionPolicy->getType() == "bal"){
                 selectionPolicy->update(selected);
