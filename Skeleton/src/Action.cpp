@@ -209,7 +209,7 @@ Close *Close::clone() const {
 BackupSimulation::BackupSimulation() {}
 
 void BackupSimulation::act(Simulation &simulation) {
-    backup = new Simulation(simulation);
+    simulation.backup1();
     complete();
 }
 
