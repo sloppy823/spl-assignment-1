@@ -356,15 +356,20 @@ Simulation::Simulation(const Simulation &other)
     : isRunning(other.isRunning),
       planCounter(other.planCounter),
       actionsLog(),
-      plans(other.plans),
+      plans(),
       settlements(),
-      facilitiesOptions(other.facilitiesOptions) {
+      facilitiesOptions() {
+    // Deep copy the actions log
     for (auto action : other.actionsLog) {
         actionsLog.push_back(action->clone());
     }
+
+    // Deep copy settlements
     for (auto settlement : other.settlements) {
         settlements.push_back(new Settlement(*settlement));
     }
+
+    // Deep copy facility options
     for (const auto &facility : other.facilitiesOptions) {
         facilitiesOptions.emplace_back(
             facility.getName(),
@@ -373,6 +378,11 @@ Simulation::Simulation(const Simulation &other)
             facility.getLifeQualityScore(),
             facility.getEconomyScore(),
             facility.getEnvironmentScore());
+    }
+
+    // Deep copy plans using the Plan copy constructor
+    for (const auto &plan : other.plans) {
+        plans.emplace_back(plan);
     }
 }
 

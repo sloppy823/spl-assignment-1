@@ -34,15 +34,7 @@ const FacilityType& BalancedSelection::selectFacility(const vector<FacilityType>
     if (facilitiesOptions.empty()) {
         throw std::logic_error("No facilities available for selection.");
     }
-    // Lambda to calculate balance difference
-    auto balanceDifference = [this](const FacilityType& facility) {
-        int updatedScores[] = {
-            LifeQualityScore + facility.getLifeQualityScore(),
-            EconomyScore + facility.getEconomyScore(),
-            EnvironmentScore + facility.getEnvironmentScore()
-        };
-        return *std::max_element(updatedScores, updatedScores + 3) - *std::min_element(updatedScores, updatedScores + 3);
-    };
+
     // Select facility with the smallest balance difference
     int minBalanceDifference = balanceDifference(facilitiesOptions[0]);
     int minBalanceIndex = 0;
@@ -54,6 +46,15 @@ const FacilityType& BalancedSelection::selectFacility(const vector<FacilityType>
         }
     }
     return facilitiesOptions[minBalanceIndex];
+}
+
+int BalancedSelection::balanceDifference(const FacilityType& facility) const {
+    int updatedScores[] = {
+        LifeQualityScore + facility.getLifeQualityScore(),
+        EconomyScore + facility.getEconomyScore(),
+        EnvironmentScore + facility.getEnvironmentScore()
+    };
+    return *std::max_element(updatedScores, updatedScores + 3) - *std::min_element(updatedScores, updatedScores + 3);
 }
 
 const string BalancedSelection::toString() const {
@@ -71,6 +72,11 @@ BalancedSelection* BalancedSelection::clone() const {
 
 const string BalancedSelection::getType() const {
     return "bal";
+}
+void BalancedSelection::update(const FacilityType& selected) {
+    LifeQualityScore += selected.getLifeQualityScore();
+    EconomyScore += selected.getEconomyScore();
+    EnvironmentScore += selected.getEnvironmentScore();
 }
 
 // EconomySelection Implementation

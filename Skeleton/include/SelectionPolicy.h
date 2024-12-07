@@ -10,6 +10,7 @@ class SelectionPolicy {
         virtual SelectionPolicy* clone() const = 0;
         virtual const string getType() const = 0; 
         virtual ~SelectionPolicy() = default;
+        virtual void update(const FacilityType& selected) {};
 };
 
 class NaiveSelection: public SelectionPolicy {
@@ -31,8 +32,9 @@ class BalancedSelection: public SelectionPolicy {
         const string toString() const override;
         BalancedSelection *clone() const override;
         const string getType() const override;     
-        ~BalancedSelection() override = default;
+        void update(const FacilityType& selected) override;
     private:
+        int balanceDifference(const FacilityType& facility) const;
         int LifeQualityScore;
         int EconomyScore;
         int EnvironmentScore;

@@ -42,6 +42,9 @@ void Plan::step() {
     if (status == PlanStatus::AVAILABLE) {
         while ((int)underConstruction.size() < (limit)) {
             const FacilityType &selected = selectionPolicy->selectFacility(facilityOptions);
+            if (selectionPolicy->getType() == "bal"){
+                selectionPolicy->update(selected);
+            }
             Facility *newFacility = new Facility(selected, settlement->getName());
             underConstruction.push_back(newFacility);
         }
@@ -113,19 +116,21 @@ Plan::~Plan() {
 // Copy Constructor
 Plan::Plan(const Plan &other)
     : plan_id(other.plan_id),
-      settlement(other.settlement),
+      settlement(new Settlement(*other.settlement)), 
       selectionPolicy(other.selectionPolicy ? other.selectionPolicy->clone() : nullptr),
       status(other.status),
-      facilities(), 
+      facilities(),
       underConstruction(),
       facilityOptions(other.facilityOptions),
       life_quality_score(other.life_quality_score),
       economy_score(other.economy_score),
       environment_score(other.environment_score) {
-    for (auto facility : other.facilities) {
+    // Deep copy facilities
+    for (const auto facility : other.facilities) {
         facilities.push_back(new Facility(*facility));
     }
-    for (auto facility : other.underConstruction) {
+    // Deep copy underConstruction facilities
+    for (const auto facility : other.underConstruction) {
         underConstruction.push_back(new Facility(*facility));
     }
 }
