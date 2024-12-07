@@ -9,9 +9,9 @@ using std::endl;
 using std::string;
 using std::ostringstream;
 using std::runtime_error;
-extern Simulation* backup;
+
 // BaseAction Implementation
-BaseAction::BaseAction() : errorMsg(""), status(ActionStatus::COMPLETED) {}
+BaseAction::BaseAction() : status(ActionStatus::COMPLETED), errorMsg("") {}
 
 ActionStatus BaseAction::getStatus() const {
     return status;
@@ -55,11 +55,7 @@ AddPlan::AddPlan(const string &settlementName, const string &selectionPolicy)
 
 void AddPlan::act(Simulation &simulation) {
     try {
-        Settlement *settlement = simulation.getSettlement(settlementName);
-        if (!settlement) {
-            throw std::runtime_error("Settlement not found: " + settlementName);
-        }
-        simulation.addPlan(settlement, simulation.createPolicy(selectionPolicy));
+        simulation.addPlan(settlementName, selectionPolicy);
         complete();
     } catch (const runtime_error &e) {
         error("Cannot create this plan");
@@ -80,10 +76,7 @@ AddSettlement::AddSettlement(const string &settlementName, SettlementType settle
 
 void AddSettlement::act(Simulation &simulation) {
     try {
-        auto settlement = new Settlement(settlementName, settlementType);
-        if (!simulation.addSettlement(settlement)) {
-            delete settlement; // Avoid memory leaks
-        }
+        simulation.addSettlement(settlementName, settlementType);
         complete();
     } catch (const runtime_error &e) {
         error("Settlement already exists");
@@ -107,10 +100,7 @@ AddFacility::AddFacility(const string &facilityName, const FacilityCategory faci
 
 void AddFacility::act(Simulation &simulation) {
     try {
-        FacilityType facility(facilityName, facilityCategory, price, lifeQualityScore, economyScore, environmentScore);
-        if (!simulation.addFacility(facility)) {
-            throw std::runtime_error("Facility \"" + facilityName + "\" already exists.");
-        }
+        simulation.addFacility(facilityName, facilityCategory, price, lifeQualityScore, economyScore, environmentScore);
         complete();
     } catch (const runtime_error &e) {
         error("Facility already exists");
@@ -128,9 +118,7 @@ AddFacility *AddFacility::clone() const {
 }
 
 // PrintPlanStatus Implementation
-PrintPlanStatus::PrintPlanStatus(int planId) : planId(planId) {
-    
-}
+PrintPlanStatus::PrintPlanStatus(int planId) : planId(planId) {}
 
 void PrintPlanStatus::act(Simulation &simulation) {
     try {
@@ -190,11 +178,7 @@ PrintActionsLog *PrintActionsLog::clone() const {
 Close::Close() {}
 
 void Close::act(Simulation &simulation) {
-    simulation.close(); // Stop simulation
-    const auto &plans = simulation.getPlans();
-    for (auto plan : plans) {
-        plan.printStatus();
-    }
+    simulation.close();
     complete();
 }
 
@@ -206,10 +190,11 @@ Close *Close::clone() const {
     return new Close(*this);
 }
 
+// BackupSimulation Implementation
 BackupSimulation::BackupSimulation() {}
 
 void BackupSimulation::act(Simulation &simulation) {
-    backup = new Simulation(simulation);
+    simulation.backup();
     complete();
 }
 
@@ -217,29 +202,22 @@ const string BackupSimulation::toString() const {
     return "backup";
 }
 
-// RestoreSimulation
+BackupSimulation *BackupSimulation::clone() const {
+    return new BackupSimulation(*this);
+}
+
+// RestoreSimulation Implementation
 RestoreSimulation::RestoreSimulation() {}
 
 void RestoreSimulation::act(Simulation &simulation) {
-    if (backup == nullptr) {
-        error("No backup available");
-        return;
-    }
-    simulation = *backup;
+    simulation.restore();
     complete();
 }
 
 const string RestoreSimulation::toString() const {
     return "restore";
 }
-BackupSimulation *BackupSimulation::clone() const {
-    
-    return new BackupSimulation(*this);
-}
+
 RestoreSimulation *RestoreSimulation::clone() const {
     return new RestoreSimulation(*this);
-}
-
-void BaseAction::reportError(const std::string &errorMsg) {
-    error(errorMsg);
 }

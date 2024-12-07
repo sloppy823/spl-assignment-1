@@ -17,7 +17,6 @@ class BaseAction{
         virtual const string toString() const=0;
         virtual BaseAction* clone() const = 0;
         virtual ~BaseAction() = default;
-        void reportError(const std::string &errorMsg);
 
     protected:
         void complete();

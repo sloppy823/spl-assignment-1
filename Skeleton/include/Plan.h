@@ -15,9 +15,7 @@ class Plan {
         Plan(const int planId, const Settlement &settlement, SelectionPolicy *selectionPolicy, const vector<FacilityType> &facilityOptions);
         const int getLifeQualityScore() const;
         const int getEconomyScore() const;
-        const string getSelectionPolicyName();
         const int getEnvironmentScore() const;
-        PlanStatus getStatus() const;
         void setSelectionPolicy(SelectionPolicy *selectionPolicy);
         void step();
         void printStatus();
@@ -25,12 +23,6 @@ class Plan {
         void addFacility(Facility* facility);
         const string toString() const;
         const int getPlanID() const;
-        ~Plan();                               // Destructor
-        Plan(const Plan &other);               // Copy Constructor
-        Plan(Plan &&other);               // Move contructor
-        Plan &operator=(const Plan &other);    // Copy Assignment Operator
-        Plan &operator=(Plan &&other) = delete;    // move Assignment Operator
-
         
     private:
         int plan_id;

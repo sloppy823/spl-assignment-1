@@ -8,9 +8,7 @@ class SelectionPolicy {
         virtual const FacilityType& selectFacility(const vector<FacilityType>& facilitiesOptions) = 0;
         virtual const string toString() const = 0;
         virtual SelectionPolicy* clone() const = 0;
-        virtual const string getType() const = 0; 
         virtual ~SelectionPolicy() = default;
-        virtual void update(const FacilityType& selected) {};
 };
 
 class NaiveSelection: public SelectionPolicy {
@@ -19,7 +17,6 @@ class NaiveSelection: public SelectionPolicy {
         const FacilityType& selectFacility(const vector<FacilityType>& facilitiesOptions) override;
         const string toString() const override;
         NaiveSelection *clone() const override;
-        const string getType() const override;     
         ~NaiveSelection() override = default;
     private:
         int lastSelectedIndex;
@@ -31,10 +28,8 @@ class BalancedSelection: public SelectionPolicy {
         const FacilityType& selectFacility(const vector<FacilityType>& facilitiesOptions) override;
         const string toString() const override;
         BalancedSelection *clone() const override;
-        const string getType() const override;     
-        void update(const FacilityType& selected) override;
+        ~BalancedSelection() override = default;
     private:
-        int balanceDifference(const FacilityType& facility) const;
         int LifeQualityScore;
         int EconomyScore;
         int EnvironmentScore;
@@ -46,7 +41,6 @@ class EconomySelection: public SelectionPolicy {
         const FacilityType& selectFacility(const vector<FacilityType>& facilitiesOptions) override;
         const string toString() const override;
         EconomySelection *clone() const override;
-        const string getType() const override;     
         ~EconomySelection() override = default;
     private:
         int lastSelectedIndex;
@@ -59,7 +53,6 @@ class SustainabilitySelection: public SelectionPolicy {
         const FacilityType& selectFacility(const vector<FacilityType>& facilitiesOptions) override;
         const string toString() const override;
         SustainabilitySelection *clone() const override;
-        const string getType() const override;     
         ~SustainabilitySelection() override = default;
     private:
         int lastSelectedIndex;

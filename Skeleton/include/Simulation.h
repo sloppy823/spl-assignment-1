@@ -23,20 +23,8 @@ class Simulation {
         Plan &getPlan(const int planID);
         void step();
         void close();
-        std::vector<Plan> &getPlans();
         void open();
-        FacilityCategory parseFacilityCategory(const string &category);
-        SelectionPolicy *createPolicy(const string &policyType);
-        void changePlanPolicy(int planID, const string &newPolicy);
-        void getPlanStatus(int planID);
-        void backup1();
-        void restore();
-        void printActionsLog() const;
-        ~Simulation();                         // Destructor
-        Simulation(const Simulation &other);   // Copy Constructor
-        Simulation &operator=(const Simulation &other); // Copy Assignment Operator
-        Simulation(Simulation&& other);
-        Simulation& operator=(Simulation&& other);
+
     private:
         bool isRunning;
         int planCounter; //For assigning unique plan IDs
@@ -44,4 +32,6 @@ class Simulation {
         vector<Plan> plans;
         vector<Settlement*> settlements;
         vector<FacilityType> facilitiesOptions;
+        FacilityCategory parseFacilityCategory(const string &category);
+        SelectionPolicy *createPolicy(const string &policyType);
 };

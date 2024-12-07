@@ -15,10 +15,8 @@ enum class SettlementType {
 class Settlement {
     public:
         Settlement(const string &name, SettlementType type);
-        Settlement(const string &name, int type);
         const string &getName() const;
         SettlementType getType() const;
-        const int getsize() const;
         const string toString() const;
         private:
             const string name;
