@@ -37,10 +37,7 @@ Simulation::Simulation(const string &configFilePath) : isRunning(false), planCou
             } else if (command == "plan") {
                 string settlementName, policyType;
                 stream >> settlementName >> policyType;
-                Settlement *settlement = getSettlement(settlementName);
-                if (!settlement) {
-                    throw runtime_error("Settlement not found: " + settlementName);
-                }
+                Settlement &settlement = getSettlement(settlementName);
                 SelectionPolicy *policy = createPolicy(policyType);
                 if (!policy) {
                     throw runtime_error("Unknown selection policy: " + policyType);
@@ -143,17 +140,13 @@ void Simulation::start() {
 
 
 // Adds a new plan to the simulation
-void Simulation::addPlan(const Settlement *settlement, SelectionPolicy *selectionPolicy) {
-    if (!settlement) {
-        throw logic_error("Invalid settlement provided for adding a plan.");
-    }
-
+void Simulation::addPlan(const Settlement &settlement, SelectionPolicy *selectionPolicy) {
     if (!selectionPolicy) {
         throw logic_error("Invalid selection policy provided for adding a plan.");
     }
 
     // Ownership of selectionPolicy is transferred to the Plan object
-    plans.emplace_back(planCounter++, *settlement, selectionPolicy, facilitiesOptions);
+    plans.emplace_back(planCounter++, settlement, selectionPolicy, facilitiesOptions);
 }
 
 // Adds a new action to the log
@@ -206,12 +199,14 @@ bool Simulation::isSettlementExists(const string &settlementName) {
 }
 
 // Retrieves a settlement by name
-Settlement *Simulation::getSettlement(const string &settlementName) {
-    auto it = find_if(settlements.begin(), settlements.end(),
-                      [&settlementName](const Settlement *settlement) {
-                          return settlement->getName() == settlementName;
-                      });
-    return (it != settlements.end()) ? *it : nullptr;
+Settlement &Simulation::getSettlement(const string &settlementName) {
+    for (Settlement *settlement : settlements) {
+        if (settlement->getName() == settlementName) {
+            return *settlement;
+        }
+       
+    }
+    throw runtime_error("Settlement with name " + settlementName + " not found.");
 }
 
 // Retrieves a plan by ID

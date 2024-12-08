@@ -55,10 +55,7 @@ AddPlan::AddPlan(const string &settlementName, const string &selectionPolicy)
 
 void AddPlan::act(Simulation &simulation) {
     try {
-        Settlement *settlement = simulation.getSettlement(settlementName);
-        if (!settlement) {
-            throw std::runtime_error("Settlement not found: " + settlementName);
-        }
+        Settlement &settlement = simulation.getSettlement(settlementName);
         simulation.addPlan(settlement, simulation.createPolicy(selectionPolicy));
         complete();
     } catch (const runtime_error &e) {
