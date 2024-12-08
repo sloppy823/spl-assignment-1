@@ -7,10 +7,26 @@
 Plan::Plan(const int planId, const Settlement &settlement, SelectionPolicy *selectionPolicy, const vector<FacilityType> &facilityOptions)
     : plan_id(planId), settlement(settlement), selectionPolicy(selectionPolicy), status(PlanStatus::AVAILABLE), 
         facilities(), underConstruction(),
-        facilityOptions(facilityOptions), life_quality_score(0), economy_score(0), environment_score(0) {}
-const int Plan::getLifeQualityScore() const {
-    return life_quality_score;
+        facilityOptions(facilityOptions), life_quality_score(0), economy_score(0), environment_score(0) 
+        {}
+
+Plan::Plan(const int planId, const Settlement &settlement, SelectionPolicy *selectionPolicy, const vector<FacilityType> &facilityOptions,
+        int life_quality_score, int economy_score, int environment_score, PlanStatus plan_status, vector<Facility*> _facilities, vector<Facility*> _underConstruction)
+             :plan_id(planId),settlement(settlement), selectionPolicy(selectionPolicy),status(plan_status), facilities(),
+              underConstruction(), facilityOptions(facilityOptions), 
+                life_quality_score(life_quality_score),economy_score(economy_score),environment_score(environment_score)
+            
+{
+
+    for (Facility* fac: _facilities)
+        this->facilities.push_back(new Facility(*fac));
+
+    for (Facility* fac: _underConstruction)
+        this->underConstruction.push_back(new Facility(*fac));
 }
+
+const int Plan::getlifeQualityScore() const { return this->life_quality_score;}
+
 
 const int Plan::getEconomyScore() const {
     return economy_score;
@@ -158,6 +174,7 @@ Plan& Plan::operator=(const Plan& other) {
     economy_score = other.economy_score;
     environment_score = other.environment_score;
 
+
     // Deep copy selectionPolicy
     delete selectionPolicy;
     selectionPolicy = other.selectionPolicy ? other.selectionPolicy->clone() : nullptr;
@@ -182,3 +199,37 @@ Plan& Plan::operator=(const Plan& other) {
     return *this;
 }
 
+const vector<Facility*> &Plan::getFacilities() const 
+{
+    return facilities;
+};
+
+const vector<Facility*> &Plan::getFacilitiesUnderConstruction() const
+{
+    return this->underConstruction;
+}
+
+const int Plan::getPlanId() const
+{
+    return this->plan_id;
+}
+
+const SelectionPolicy* Plan::GetSelectionPolicy() const
+{
+    return selectionPolicy;
+}
+
+const vector<FacilityType>& Plan::getFacilitiesOptions() const
+{
+    return this->facilityOptions;
+}
+
+const Settlement& Plan::getSettlement() const
+{
+    return settlement;
+}
+
+const PlanStatus Plan::getStatus() const
+{
+    return this->status;
+}

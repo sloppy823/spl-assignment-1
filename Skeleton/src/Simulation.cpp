@@ -5,7 +5,8 @@
 #include <iostream>
 #include <algorithm> 
 #include <fstream>      
-#include <sstream>      
+#include <sstream>
+
 using std::logic_error;
 using std::runtime_error;
 using std::find_if;
@@ -139,7 +140,6 @@ void Simulation::start() {
 }
 
 
-// Adds a new plan to the simulation
 void Simulation::addPlan(const Settlement &settlement, SelectionPolicy *selectionPolicy) {
     if (!selectionPolicy) {
         throw logic_error("Invalid selection policy provided for adding a plan.");
@@ -341,9 +341,11 @@ Simulation::~Simulation() {
     for (auto action : actionsLog) {
         delete action;
     }
+    this->actionsLog.clear();
     for (auto settlement : settlements) {
         delete settlement;
     }
+    this->settlements.clear();
 }
 
 // Copy Constructor
@@ -353,7 +355,7 @@ Simulation::Simulation(const Simulation &other)
       actionsLog(),
       plans(),
       settlements(),
-      facilitiesOptions() {
+      facilitiesOptions(other.facilitiesOptions) {
     // Deep copy the actions log
     for (auto action : other.actionsLog) {
         actionsLog.push_back(action->clone());
@@ -364,21 +366,14 @@ Simulation::Simulation(const Simulation &other)
         settlements.push_back(new Settlement(*settlement));
     }
 
-    // Deep copy facility options
-    for (const auto &facility : other.facilitiesOptions) {
-        facilitiesOptions.emplace_back(
-            facility.getName(),
-            facility.getCategory(),
-            facility.getCost(),
-            facility.getLifeQualityScore(),
-            facility.getEconomyScore(),
-            facility.getEnvironmentScore());
-    }
-
+   
+    plans.clear();
     // Deep copy plans using the Plan copy constructor
-    for (const auto &plan : other.plans) {
-        plans.emplace_back(plan);
-    }
+    for(const Plan& p : other.plans){
+        Plan copyPlan(p.getPlanId(), this->getSettlement(p.getSettlement().getName()), p.GetSelectionPolicy()->clone(), p.getFacilitiesOptions(),
+            p.getlifeQualityScore(),p.getEconomyScore(),p.getEnvironmentScore(),p.getStatus(),p.getFacilities(),p.getFacilitiesUnderConstruction());
+            this->plans.push_back(copyPlan);
+        }
 }
 
 // Copy Assignment Operator
@@ -391,35 +386,35 @@ Simulation &Simulation::operator=(const Simulation &other) {
     for (auto action : actionsLog) {
         delete action;
     }
+    actionsLog.clear();
+
     for (auto settlement : settlements) {
         delete settlement;
     }
+    settlements.clear();
 
-    // Clear and deep copy data
-    actionsLog.clear();
+
     for (auto action : other.actionsLog) {
         actionsLog.push_back(action->clone());
     }
 
-    settlements.clear();
+
     for (auto settlement : other.settlements) {
         settlements.push_back(new Settlement(*settlement));
     }
 
     facilitiesOptions.clear();
-    for (const auto &facility : other.facilitiesOptions) {
-        facilitiesOptions.emplace_back(
-            facility.getName(),
-            facility.getCategory(),
-            facility.getCost(),
-            facility.getLifeQualityScore(),
-            facility.getEconomyScore(),
-            facility.getEnvironmentScore());
-    }
-
+    
+    for(FacilityType fac : other.facilitiesOptions)
+        this->facilitiesOptions.push_back(fac);
+    plans.clear();
     isRunning = other.isRunning;
     planCounter = other.planCounter;
-    plans = other.plans;
+    for(const Plan& p : other.plans){
+        Plan copyPlan(p.getPlanId(), this->getSettlement(p.getSettlement().getName()), p.GetSelectionPolicy()->clone(), p.getFacilitiesOptions(),
+            p.getlifeQualityScore(),p.getEconomyScore(),p.getEnvironmentScore(),p.getStatus(),p.getFacilities(),p.getFacilitiesUnderConstruction());
+            this->plans.push_back(copyPlan);
+        }
 
     return *this;
 }

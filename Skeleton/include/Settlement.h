@@ -23,4 +23,5 @@ class Settlement {
         private:
             const string name;
             SettlementType type;
+
 };

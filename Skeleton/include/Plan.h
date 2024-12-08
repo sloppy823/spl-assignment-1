@@ -13,11 +13,13 @@ enum class PlanStatus {
 class Plan {
     public:
         Plan(const int planId, const Settlement &settlement, SelectionPolicy *selectionPolicy, const vector<FacilityType> &facilityOptions);
-        const int getLifeQualityScore() const;
-        const int getEconomyScore() const;
+                
+        // THIS IS CONSTRUCTOR THE ONLY SOLUTION WE FOUND TO FIX THE PROBLEM OF SETTLEMENT BEING REFERRENCE
+        Plan(const int planId, const Settlement &settlement, SelectionPolicy *selectionPolicy, const vector<FacilityType> &facilityOptions,
+            int life_quality_score, int economy_score, int environment_score, PlanStatus plan_status, vector<Facility*> _facilities,
+            vector<Facility*> _underConstruction);
         const string getSelectionPolicyName();
-        const int getEnvironmentScore() const;
-        PlanStatus getStatus() const;
+        
         void setSelectionPolicy(SelectionPolicy *selectionPolicy);
         void step();
         void printStatus();
@@ -29,10 +31,25 @@ class Plan {
         ~Plan();                               // Destructor
         Plan(const Plan &other);               // Copy Constructor
         Plan(Plan &&other);               // Move contructor
-        Plan &operator=(const Plan &other);    // Copy Assignment Operator
+        Plan &operator=(const Plan &other); // Copy Assignment Operator
         Plan &operator=(Plan &&other) = delete;    // move Assignment Operator
 
         
+    //ADDED THIS GETTERS TO FIX PLAN &REF PROBLEM
+    // all of these getters were added to cope with the settlement being const ref field in Plan class.
+        const vector<FacilityType>& getFacilitiesOptions() const;
+        const vector<Facility*> &getFacilitiesUnderConstruction() const;
+        const PlanStatus getStatus() const;
+        const int getPlanId() const;
+        const SelectionPolicy* getSelectionPolicy();
+        const SelectionPolicy* GetSelectionPolicy() const;
+        const Settlement& getSettlement() const;
+        const int getEconomyScore() const;
+        const int getEnvironmentScore() const;
+        const int getlifeQualityScore() const;
+
+
+
     private:
         int plan_id;
         const Settlement &settlement;

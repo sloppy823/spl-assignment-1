@@ -18,4 +18,6 @@ SettlementType Settlement::getType() const {
 const int Settlement::getsize() const{
     return (int)(type) +1;
 }
-
+const string Settlement::toString() const {
+    return name;
+}
